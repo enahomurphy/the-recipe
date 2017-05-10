@@ -1,0 +1,4 @@
+.vscode
+bin
+pkg
+.DS_Store
