@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"database/sql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
-
-
-sql.Open("mysql", )
 
 // Data data to be sent
 // When request is made to the server
@@ -42,4 +39,20 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, string(resData))
+}
+
+//Get all users in the database
+func Get(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Fprintf(w, "get all users")
+}
+
+//Updates a  user detail in the database
+func Update(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "get all users")
+}
+
+//Deletes a  user detail in the database
+func Delete(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "get all users")
 }

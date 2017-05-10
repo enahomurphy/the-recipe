@@ -1,4 +1,4 @@
-CTEATE TABLE users (
+CREATE TABLE users (
   id int(11) AUTO_INCREMENT NOT NULL,
   firts_name varchar(255),
   last_name varchar(255),
@@ -16,7 +16,7 @@ CREATE TABLE categories (
 )
 
 CREATE TABLE ingredients (
-  id NOT NULL AUTO_INCREMENT
+  id int(11) NOT NULL AUTO_INCREMENT
   name varchar(255),
   quantity varchar(50),
   unit varchar(20)
@@ -24,12 +24,15 @@ CREATE TABLE ingredients (
 )
 
 CREATE TABLE recipes (
-  id int NOT NUM AUTO_INCREMENT,
+  id int(11) NOT NUll AUTO_INCREMENT,
   name varchar(255),
-  ingredientID,
-  categoryID int,
   description text(300),
   PRIMARY KEY (id)
-  FOREIGN KEY (categoryID) REFERENCES categories (id)
-  FOREIGN KEY (ingredientID) REFERENCES ingredients (id)
+ 
 )
+
+ALTER TABLE recipes
+			ADD FOREIGN KEY (categoryID) REFERENCES categories(id);
+
+ALTER TABLE recipes
+			ADD FOREIGN KEY (ingredientID) REFERENCES ingredients(id);
