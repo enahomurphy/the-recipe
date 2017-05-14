@@ -5,6 +5,8 @@ CREATE TABLE users (
   email varchar(255),
   username varchar(255),
   profile_pic text,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
 
