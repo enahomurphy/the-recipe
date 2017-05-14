@@ -17,6 +17,5 @@ func DB() *sql.DB {
 	if pingErr != nil {
 		panic(pingErr.Error())
 	}
-
 	return db
 }

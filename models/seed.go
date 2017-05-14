@@ -16,6 +16,8 @@ func CreateTables(*sql.DB) {
 			email varchar(255),
 			username varchar(255),
 			profile_pic text,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
 		)`)
 
@@ -36,6 +38,7 @@ func CreateTables(*sql.DB) {
 			id int(11) NOT NULL AUTO_INCREMENT,
 			name varchar(255),
 			quantity varchar(50),
+			recipeID int,
 			unit varchar(50),
 			PRIMARY KEY (id)
 		)`)
@@ -46,11 +49,20 @@ func CreateTables(*sql.DB) {
 		`CREATE TABLE recipes (
 			id int NOT NUll AUTO_INCREMENT,
 			name varchar(255),
+			userID int,
+			categoryID int,
 			description text(300),
 			PRIMARY KEY (id)
 		)`)
 
 	helpers.PrintErr(recipeError)
+
+	_, userForeign := DB().Exec(
+		`
+		ALTER TABLE recipes
+			ADD FOREIGN KEY (userID) REFERENCES users(id);
+		`)
+	helpers.PrintErr(userForeign)
 
 	_, categoryForeign := DB().Exec(
 		`
@@ -61,8 +73,8 @@ func CreateTables(*sql.DB) {
 
 	_, ingredientForeign := DB().Exec(
 		`
-		ALTER TABLE recipes
-			ADD FOREIGN KEY (ingredientID) REFERENCES ingredients(id);
+		ALTER TABLE ingredients
+			ADD FOREIGN KEY (recipeID) REFERENCES recipes(id);
 		`)
 	helpers.PrintErr(ingredientForeign)
 }
