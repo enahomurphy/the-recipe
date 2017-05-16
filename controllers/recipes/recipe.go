@@ -1,4 +1,4 @@
-package user
+package recipes
 
 import (
 	"encoding/json"
@@ -13,12 +13,12 @@ import (
 // When request is made to the server
 type Data struct {
 	ID        string `json:"id,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	UserName  string `json:"username,omitempty"`
-	Email     string `json:"email,omitempty"`
-	CreatedAt string `json:"created_at,omitempty"`
-	UpdatedAt string `json:"updated_at,omitempty"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	UserName  string `json:"username"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 // Create creates a
