@@ -14,21 +14,30 @@ CREATE TABLE categories (
   id int(11) AUTO_INCREMENT NOT NULL,
   title varchar(255),
   description text(300)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 )
 
 CREATE TABLE ingredients (
-  id int(11) NOT NULL AUTO_INCREMENT
+ 	id int(11) NOT NULL AUTO_INCREMENT,
   name varchar(255),
   quantity varchar(50),
-  unit varchar(20)
-  PRIMARY KEY id
+  recipeID int,
+  unit varchar(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
 )
 
 CREATE TABLE recipes (
-  id int(11) NOT NUll AUTO_INCREMENT,
+  id int NOT NUll AUTO_INCREMENT,
   name varchar(255),
+  userID int,
+  categoryID int,
   description text(300),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
  
 )
