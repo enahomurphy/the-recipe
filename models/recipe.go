@@ -80,8 +80,8 @@ func CreateRecipe() {
 	fmt.Println(row)
 }
 
-// DeleteRecipe user from database
-// NB: this method wipes all user details
+// DeleteRecipe recipe from database
+// NB: this method wipes all recipe details
 // recipe ans ingredients inclusive
 func DeleteRecipe(id int) (bool, error) {
 	db := DB()
