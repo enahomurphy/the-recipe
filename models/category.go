@@ -48,7 +48,7 @@ func GetCategory(id int) (Category, error) {
 	category := Category{}
 	db.Close()
 
-	rows := db.QueryRow("SELECT title, description, updated_at, created_ac FROM users where id = ? ", id)
+	rows := db.QueryRow("SELECT title, description, updated_at, created_ac FROM categories where id = ? ", id)
 
 	err := rows.Scan(&category)
 
