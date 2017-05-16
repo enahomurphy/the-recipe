@@ -28,6 +28,8 @@ func CreateTables(*sql.DB) {
 			id int(11) AUTO_INCREMENT NOT NULL,
 			title varchar(255),
 			description text(300),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
 		)`)
 
@@ -40,6 +42,8 @@ func CreateTables(*sql.DB) {
 			quantity varchar(50),
 			recipeID int,
 			unit varchar(50),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
 		)`)
 
@@ -52,6 +56,8 @@ func CreateTables(*sql.DB) {
 			userID int,
 			categoryID int,
 			description text(300),
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)
 		)`)
 

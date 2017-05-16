@@ -4,27 +4,29 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"recipe/helpers"
 )
 
 // User data to be sent
 // When request is made to the server
 type User struct {
 	ID         string `json:"id,omitempty"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	UserName   string `json:"username"`
-	Email      string `json:"email"`
-	ProfilePic string `json:"profile_pic"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
+	FirstName  string `json:"first_name,omitempty"`
+	LastName   string `json:"last_name,omitempty"`
+	UserName   string `json:"username,omitempty"`
+	Email      string `json:"email,omitempty"`
+	ProfilePic string `json:"profile_pic,omitempty"`
+	CreatedAt  string `json:"created_at,omitempty"`
+	UpdatedAt  string `json:"updated_at,omitempty"`
 }
 
 // GetAll gets all user
-func GetAll() []User {
+func GetAllUser() []User {
 	db := DB()
 	users := []User{}
 
-	rows, err := db.Query("SELECT id, first_name, last_name, username, email, profile_pic, created_at, updated_at FROM users")
+	rows, err := db.Query(`SELECT id, first_name, last_name, 
+		username, email, profile_pic, created_at, updated_at FROM users`)
 
 	defer db.Close()
 
@@ -46,7 +48,7 @@ func GetAll() []User {
 }
 
 // Get gets a single user
-func Get(id int) (User, error) {
+func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
 	db.Close()
@@ -78,8 +80,10 @@ func (u User) CreateUser(db *sql.DB) {
 	fmt.Println(row)
 }
 
-// Delete user from database
-func Delete(id int) (bool, error) {
+// DeleteUser user from database
+// NB: this method wipes all user details
+// recipe ans ingredients inclusive
+func DeleteUser(id int) (bool, error) {
 	db := DB()
 
 	sql := `DELETE * FROM users WHERE id = ?`
@@ -96,32 +100,39 @@ func Delete(id int) (bool, error) {
 	return true, nil
 }
 
-// Update user details
-func Update(id int) (User, error) {
+// UpdateUser user details base on the values sent
+// takes the user id and user struct containing
+// details to be update
+func UpdateUser(id int, user *User) (bool, error) {
 	db := DB()
-	user := User{
-		FirstName: "Jessy",
-		LastName: "enaho",
-		Email: "jessyba@gmail.com",
-		UserName: "jboys"
+
+	userValues := map[string]string{}
+
+	if user.FirstName != "" {
+		userValues["first_name"] = user.FirstName
+	}
+	if user.LastName != "" {
+		userValues["last_name"] = user.LastName
+	}
+	if user.UserName != "" {
+		userValues["username"] = user.UserName
+	}
+	if user.ProfilePic != "" {
+		userValues["profile_pic"] = user.ProfilePic
+	}
+	if user.Email != "" {
+		userValues["email"] = user.Email
 	}
 
-	for _, value := range user {
-		
-	}
+	query := helpers.UpdateBuilder(userValues)
 
-	user, err := Get(id)
+	println(query)
+	rows, err := db.Exec(query, id)
 	if err != nil {
-		return user, err
+		panic(err.Error())
 	} else {
-		sql := `UPDATE users
-				SET column1 = value1, column2 = value2, ...
-				WHERE condition;`
+		println(rows)
 	}
 
 	return true, nil
-}
-
-func handleUpdate(*User) {
-
 }
