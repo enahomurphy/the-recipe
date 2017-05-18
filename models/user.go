@@ -15,12 +15,13 @@ type User struct {
 	LastName   string `json:"last_name,omitempty"`
 	UserName   string `json:"username,omitempty"`
 	Email      string `json:"email,omitempty"`
-	ProfilePic string `json:"profile_pic,omitempty"`
+	ProfilePic string `json:"profile_pic"`
+	Password   string `json:"password,omitempty"`
 	CreatedAt  string `json:"created_at,omitempty"`
 	UpdatedAt  string `json:"updated_at,omitempty"`
 }
 
-// GetAll gets all user
+// GetAllUser gets all user
 func GetAllUser() []User {
 	db := DB()
 	users := []User{}
@@ -36,7 +37,6 @@ func GetAllUser() []User {
 
 	for rows.Next() {
 		user := User{}
-
 		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.UserName,
 			&user.Email, &user.ProfilePic, &user.CreatedAt, &user.UpdatedAt); err != nil {
 			panic(err.Error())
@@ -51,13 +51,12 @@ func GetAllUser() []User {
 func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
-	db.Close()
+	defer db.Close()
 
-	err := db.QueryRow("SELECT first_name, last_name, username, email, profile_pic FROM users where id = ? ", id).Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
+	err := db.QueryRow("SELECT first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
 
 	switch {
 	case err == sql.ErrNoRows:
-		fmt.Println("No rows with that id found", err.Error())
 		errMsg := fmt.Errorf("user with (id %d) does not exist", id)
 		return user, errMsg
 	case err != nil:
@@ -70,14 +69,19 @@ func GetUser(id int) (User, error) {
 }
 
 // CreateUser creates a new user
-func (u User) CreateUser(db *sql.DB) {
+func CreateUser(u *User) (*User, error) {
+	db := DB()
+	defer db.Close()
+
 	sql := `INSERT INTO users(first_name, last_name, email, username,
-				profile_pic ) VALUES(?, ?, ?, ?, ?)`
-	row, err := db.Exec(sql, u.FirstName, u.LastName, u.Email, u.UserName, u.ProfilePic)
+				profile_pic, password ) VALUES(?, ?, ?, ?, ?, ?)`
+	_, err := db.Exec(sql, &u.FirstName, &u.LastName, &u.Email, &u.UserName, &u.ProfilePic, &u.Password)
 	if err != nil {
-		fmt.Println(err.Error())
+		errMsg := fmt.Errorf("Error creating a user: %s?", err.Error())
+		return u, errMsg
 	}
-	fmt.Println(row)
+	return u, nil
+
 }
 
 // DeleteUser user from database
@@ -86,13 +90,16 @@ func (u User) CreateUser(db *sql.DB) {
 func DeleteUser(id int) (bool, error) {
 	db := DB()
 
-	sql := `DELETE * FROM users WHERE id = ?`
+	defer db.Close()
+	_, getErr := GetUser(id)
+
+	if getErr != nil {
+		return false, getErr
+	}
+	sql := `DELETE FROM users WHERE id = ?`
 	row, err := db.Exec(sql, id)
 
-	defer db.Close()
-
 	if err != nil {
-		fmt.Println(err.Error())
 		return false, err
 	}
 	fmt.Println(row)
@@ -107,6 +114,11 @@ func UpdateUser(id int, user *User) (bool, error) {
 	db := DB()
 
 	userValues := map[string]string{}
+
+	_, err := GetUser(id)
+	if err != nil {
+		return false, err
+	}
 
 	if user.FirstName != "" {
 		userValues["first_name"] = user.FirstName
@@ -123,16 +135,11 @@ func UpdateUser(id int, user *User) (bool, error) {
 	if user.Email != "" {
 		userValues["email"] = user.Email
 	}
-
 	query := helpers.UpdateBuilder(userValues)
-
 	println(query)
-	rows, err := db.Exec(query, id)
-	if err != nil {
-		panic(err.Error())
-	} else {
-		println(rows)
+	_, UpdateErr := db.Exec(query, id)
+	if UpdateErr != nil {
+		return false, err
 	}
-
 	return true, nil
 }
