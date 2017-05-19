@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"recipe/helpers"
 )
 
 // User data to be sent
@@ -52,8 +51,8 @@ func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
 	defer db.Close()
-	err := db.QueryRow("SELECT first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).
-		Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
+	err := db.QueryRow("SELECT id, first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).
+		Scan(&user.ID, &user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -105,12 +104,12 @@ func DeleteUser(id int) (bool, error) {
 	return true, nil
 }
 
-// UpdateUser user details base on the values sent
+// UpdateUserByID user details base on the values sent
 // takes the user id and user struct containing
 // details to be update
-func UpdateUser(id int, user *User) (bool, error) {
+func UpdateUserByID(id int, user *User) (bool, error) {
 	db := DB()
-
+	defer db.Close()
 	userValues := map[string]string{}
 
 	_, err := GetUser(id)
@@ -133,10 +132,12 @@ func UpdateUser(id int, user *User) (bool, error) {
 	if user.Email != "" {
 		userValues["email"] = user.Email
 	}
-	query := helpers.UpdateBuilder(userValues)
-	_, UpdateErr := db.Exec(query, id)
-	if UpdateErr != nil {
-		return false, UpdateErr
-	}
+	// table := "USERS"
+	// query := helpers.UpdateBuilder(userValues, table)
+
+	// _, UpdateErr := db.Exec(query, id)
+	// if UpdateErr != nil {
+	// 	return false, UpdateErr
+	// }
 	return true, nil
 }

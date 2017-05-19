@@ -39,18 +39,8 @@ func DecoderErrorResponse(w http.ResponseWriter) {
 // data to the server
 func BadRequest(w http.ResponseWriter, errMsg error) {
 	// Error interface
-	type Error struct {
-		Status  int    `json:"status"`
-		Message string `json:"message"`
-	}
-
-	err := Error{
-		Status:  http.StatusBadRequest,
-		Message: errMsg.Error(),
-	}
-
 	w.Header().Set("Content-type", "Application/json")
-	response := RespondMessages(err, http.StatusBadRequest)
+	response := RespondMessages(errMsg.Error(), http.StatusBadRequest)
 	fmt.Fprint(w, response)
 }
 
@@ -67,6 +57,14 @@ func StatusNotFound(w http.ResponseWriter, err error) {
 // access a resource
 func StatusOk(w http.ResponseWriter, data interface{}) {
 	msg := RespondWithData("", 200, data)
+	ResponseWriter(w, http.StatusOK, msg)
+}
+
+// StatusOkMessage Sends a 200 request to the user
+// this is mostly triggered when the user
+// access a resource
+func StatusOkMessage(w http.ResponseWriter, message string) {
+	msg := RespondMessages(message, http.StatusOK)
 	ResponseWriter(w, http.StatusOK, msg)
 }
 

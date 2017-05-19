@@ -2,13 +2,14 @@ package helpers
 
 import (
 	"bytes"
+	"fmt"
 )
 
 // UpdateBuilder
-func UpdateBuilder(u map[string]string) string {
+func UpdateBuilder(u map[string]string, table string) string {
 	var query bytes.Buffer
-	query.WriteString("UPDATE users SET ")
-
+	query.WriteString("UPDATE " + table + " SET ")
+	var result string
 	length := len(u)
 
 	for value, key := range u {
@@ -21,6 +22,7 @@ func UpdateBuilder(u map[string]string) string {
 	}
 
 	query.WriteString("WHERE id = ? ")
-
-	return query.String()
+	fmt.Println(query.String())
+	result = query.String()
+	return result
 }
