@@ -18,6 +18,7 @@ func main() {
 
 func init() {
 	models.CreateTables(models.DB())
+
 }
 
 func routes() *mux.Router {
