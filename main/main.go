@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"recipe/controllers/user"
+	"recipe/controllers"
 	"recipe/models"
 	"strconv"
 
@@ -25,16 +25,22 @@ func init() {
 
 func routes() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc(baseURL+"/users", user.GetAllUsers).Methods("GET")
-	router.HandleFunc(baseURL+"/users", user.Create).Methods("POST")
-	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.GetUser).Methods("GET")
-	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.Update).Methods("PUT")
-	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.Delete).Methods("DELETE")
+	router.HandleFunc(baseURL+"/users", controllers.GetAllUsers).Methods("GET")
+	router.HandleFunc(baseURL+"/users", controllers.Create).Methods("POST")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.GetUser).Methods("GET")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.Update).Methods("PUT")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.Delete).Methods("DELETE")
 
-	router.HandleFunc(baseURL+"/recipes", user.GetUser).Methods("GET")
-	router.HandleFunc(baseURL+"/recipes", user.Create).Methods("POST")
-	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", user.Update).Methods("PUT")
-	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", user.Update).Methods("DELETE")
+	router.HandleFunc(baseURL+"/categories", controllers.GetAllUsers).Methods("GET")
+	router.HandleFunc(baseURL+"/categories", controllers.CreateCategory).Methods("POST")
+	router.HandleFunc(baseURL+"/categories/{id:[0-9]+}", controllers.GetCategory).Methods("GET")
+	// router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.Update).Methods("PUT")
+	// router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.Delete).Methods("DELETE")
+
+	router.HandleFunc(baseURL+"/recipes", controllers.GetUser).Methods("GET")
+	router.HandleFunc(baseURL+"/recipes", controllers.Create).Methods("POST")
+	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.Update).Methods("PUT")
+	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.Update).Methods("DELETE")
 
 	return router
 }
