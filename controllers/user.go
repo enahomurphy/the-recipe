@@ -1,4 +1,4 @@
-package user
+package controllers
 
 import (
 	"encoding/json"
@@ -14,25 +14,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Data data to be sent
-// When request is made to the server
-type Data struct {
-	ID        string `json:"id,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	UserName  string `json:"username,omitempty"`
-	Email     string `json:"email,omitempty"`
-	CreatedAt string `json:"created_at,omitempty"`
-	UpdatedAt string `json:"updated_at,omitempty"`
-}
-
 type usersResponse struct {
 	Status int           `json:"status"`
 	Data   []models.User `json:"data"`
 }
 
-// Create creates a new user
-func Create(w http.ResponseWriter, r *http.Request) {
+// CreateUser creates a new user
+func CreateUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		FirstName: r.FormValue("first_name"),
 		LastName:  r.FormValue("last_name"),
@@ -82,7 +70,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 // to the requesting user
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	fmt.Println(r.Context())
 
 	id, parseErr := strconv.Atoi(vars["id"])
 	if parseErr != nil {
@@ -95,7 +82,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.StatusOk(w, user)
-
 }
 
 // GetAllUsers Gets all users and sends the data as response
@@ -115,8 +101,8 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	helpers.ResponseWriter(w, http.StatusOK, string(result))
 }
 
-//Update updates user's detail
-func Update(w http.ResponseWriter, r *http.Request) {
+//UpdateUser updates user's detail
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		FirstName: r.FormValue("first_name"),
 		LastName:  r.FormValue("last_name"),
@@ -145,8 +131,8 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	helpers.StatusOk(w, user)
 }
 
-//Delete deletes a user detail
-func Delete(w http.ResponseWriter, r *http.Request) {
+//DeleteUser deletes a user detail
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id, parseErr := strconv.Atoi(vars["id"])

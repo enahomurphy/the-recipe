@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
@@ -67,14 +68,31 @@ func GetCategory(id int) (Category, error) {
 }
 
 //CreateCategory creates a new user
-func (u User) CreateCategory(category Category) {
+func CreateCategory(category *Category) (*Category, error) {
 	db := DB()
-	sql := `INSERT INTO categories (title, description) VALUES(?, ?)`
-	row, err := db.Exec(sql, category.ID, category.Title, category.Description)
-	if err != nil {
-		fmt.Println(err.Error())
+	defer db.Close()
+	var sql, values bytes.Buffer
+	sql.WriteString("INSERT INTO categories (")
+	values.WriteString("VALUES (")
+
+	if category.Title != "" {
+		sql.WriteString("title ")
+		values.WriteString("'" + category.Title + "'")
 	}
-	fmt.Println(row)
+	if category.Description != "" {
+		sql.WriteString(", description ")
+		values.WriteString(", '" + category.Description + "'")
+	}
+	sql.WriteString(") ")
+	sql.WriteString(values.String() + ")")
+	query := sql.String()
+	fmt.Println(query)
+	_, err := db.Exec(sql.String())
+	if err != nil {
+		errMsg := fmt.Errorf("Error creating a user: %s?", err.Error())
+		return category, errMsg
+	}
+	return category, nil
 }
 
 // DeleteCategory user from database
@@ -104,6 +122,11 @@ func UpdateCategory(id int, category *Category) (bool, error) {
 
 	categoryValues := map[string]string{}
 
+	_, err := GetCategory(id)
+	if err != nil {
+		return false, err
+	}
+
 	if category.Title != "" {
 		categoryValues["title"] = category.Title
 	}
@@ -112,13 +135,9 @@ func UpdateCategory(id int, category *Category) (bool, error) {
 	}
 
 	query := helpers.UpdateBuilder(categoryValues)
-
-	println(query)
-	rows, err := db.Exec(query, id)
-	if err != nil {
-		panic(err.Error())
-	} else {
-		println(rows)
+	_, UpdateErr := db.Exec(query, id)
+	if UpdateErr != nil {
+		return false, UpdateErr
 	}
 
 	return true, nil

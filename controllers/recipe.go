@@ -1,4 +1,4 @@
-package recipes
+package controllers
 
 import (
 	"encoding/json"
