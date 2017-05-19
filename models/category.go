@@ -12,34 +12,38 @@ import (
 type Category struct {
 	ID          int    `json:"id,omitempty"`
 	Title       string `json:"title,omitempty"`
-	Description string `json:"description,omitempty"`
+	Description string `json:"description"`
 	CreatedAt   string `json:"created_at,omitempty"`
 	UpdatedAt   string `json:"updated_at,omitempty"`
 }
 
 // GetAllCategory gets all user
-func GetAllCategory() []Category {
+func GetAllCategory() ([]Category, error) {
 	db := DB()
-	categories := []Category{}
-
-	rows, err := db.Query(`SELECT id, title, description created_at, updated_at FROM categories`)
 
 	defer db.Close()
 
+	categories := []Category{}
+
+	rows, err := db.Query(`SELECT id, title, description, created_at, updated_at FROM categories`)
+
 	if err != nil {
-		panic(err)
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return nil, errMsg
+
 	}
 
 	for rows.Next() {
 		category := Category{}
 
 		if err := rows.Scan(&category.ID, &category.Title, &category.Description, &category.CreatedAt, &category.UpdatedAt); err != nil {
-			panic(err.Error())
+			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+			return nil, errMsg
 		}
 		categories = append(categories, category)
 		fmt.Println(categories)
 	}
-	return categories
+	return categories, nil
 }
 
 //GetCategory gets a single user
@@ -86,24 +90,24 @@ func CreateCategory(category *Category) (*Category, error) {
 func DeleteCategory(id int) (bool, error) {
 	db := DB()
 
-	sql := `DELETE * FROM categories WHERE id = ?`
-	row, err := db.Exec(sql, id)
+	sql := `DELETE FROM categories WHERE id = ?`
+	_, err := db.Exec(sql, id)
 
 	defer db.Close()
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return false, err
+		errMsg := fmt.Errorf("Error Deletin a category: %s?", err.Error())
+		return false, errMsg
 	}
-	fmt.Println(row)
-
 	return true, nil
 }
 
 // UpdateCategory updates category details base on the values sent
 // takes the user id and user struct containing details to be update
-func UpdateCategory(id int, category *Category) (bool, error) {
+func UpdateCategoryById(id int, category *Category) (bool, error) {
 	db := DB()
+
+	defer db.Close()
 
 	categoryValues := map[string]string{}
 
@@ -119,7 +123,8 @@ func UpdateCategory(id int, category *Category) (bool, error) {
 		categoryValues["description"] = category.Description
 	}
 
-	query := helpers.UpdateBuilder(categoryValues)
+	query := helpers.UpdateBuilder(categoryValues, "CATEGORIES")
+	fmt.Println(query)
 	_, UpdateErr := db.Exec(query, id)
 	if UpdateErr != nil {
 		return false, UpdateErr

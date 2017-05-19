@@ -121,7 +121,7 @@ func UpdateRecipe(id int, recipe *Recipe) (bool, error) {
 		recipeValues["description"] = recipe.Description
 	}
 
-	query := helpers.UpdateBuilder(recipeValues)
+	query := helpers.UpdateBuilder(recipeValues, "RECIPES")
 
 	println(query)
 	rows, err := db.Exec(query, id)

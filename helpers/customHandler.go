@@ -32,17 +32,17 @@ func RespondMessage(err string, status int) string {
 
 // RespondMessages converts error messages to a
 // valid string to be sent as response
-func RespondMessages(err interface{}, status int) string {
+func RespondMessages(message string, status int) string {
 	type Response struct {
 		Status  int         `json:"status"`
 		Message interface{} `json:"message"`
 	}
-	newErr := Response{
+	msg := Response{
 		Status:  status,
-		Message: err,
+		Message: message,
 	}
 
-	response, err := json.Marshal(newErr)
+	response, _ := json.Marshal(msg)
 	return string(response)
 }
 
