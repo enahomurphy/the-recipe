@@ -1,0 +1,32 @@
+{
+  "name": "the-recipe",
+  "version": "1.0.0",
+  "description": "Simple recipe api written in golang for learning purpose",
+  "main": "main/main.go",
+  "scripts": {
+    "test": "npm test",
+    "start": "go run main/main.go",
+    "build": "go build main/main.go"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enahomurphy/the-recipe.git"
+  },
+  "keywords": [
+    "recipe",
+    "golang",
+    "enahomurphy",
+    "api",
+    "webservices"
+  ],
+  "author": "Enaho Murphy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/enahomurphy/the-recipe/issues"
+  },
+  "homepage": "https://github.com/enahomurphy/the-recipe#readme",
+  "devDependencies": {
+    "gulp-go": "^1.1.0",
+    "gulp": "^3.9.1"
+  }
+}
