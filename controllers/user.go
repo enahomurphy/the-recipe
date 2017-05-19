@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"recipe/models"
 
 	"strconv"
 
 	"recipe/helpers"
+
+	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -122,13 +123,12 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	_, err := models.UpdateUser(id, &user)
-	fmt.Println(err.Error())
+	_, err := models.UpdateUserByID(id, &user)
 	if err != nil {
-		helpers.BadRequest(w, err)
+		helpers.BadRequest(w, errors.New(err.Error()))
 		return
 	}
-	helpers.StatusOk(w, user)
+	helpers.StatusOkMessage(w, "User with "+vars["id"]+" updated")
 }
 
 //DeleteUser deletes a user detail
@@ -145,5 +145,15 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		helpers.BadRequest(w, err)
 		return
 	}
-	helpers.ResponseWriter(w, http.StatusOK, "User deleted")
+
+	type Message struct {
+		Status  int    `json:"status"`
+		Message string `json:"message"`
+	}
+
+	response := Message{
+		Status:  http.StatusOK,
+		Message: "user deleted",
+	}
+	helpers.StatusOk(w, response)
 }

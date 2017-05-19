@@ -39,7 +39,6 @@ func GetAllIngredient() []Ingredient {
 			panic(err.Error())
 		}
 		ingredients = append(ingredients, ingredient)
-		fmt.Println(ingredient)
 	}
 	return ingredients
 }
@@ -55,7 +54,6 @@ func GetIngredient(id int) (Ingredient, error) {
 
 	switch {
 	case err == sql.ErrNoRows:
-		fmt.Println("No rows with that id found", err.Error())
 		errMsg := fmt.Errorf("ingredient with (id %d) does not exist", id)
 		return ingredient, errMsg
 	case err != nil:
@@ -72,11 +70,9 @@ func CreateIngredient() {
 	db := DB()
 	ingredient := Ingredient{}
 	sql := `INSERT INTO recipes (name, quantity, recipeID, unit) VALUES(?, ?, ?, ?)`
-	row, err := db.Exec(sql, &ingredient)
+	_, err := db.Exec(sql, &ingredient)
 	if err != nil {
-		fmt.Println(err.Error())
 	}
-	fmt.Println(row)
 }
 
 // DeleteIngredient ingredient from database
@@ -86,15 +82,13 @@ func DeleteIngredient(id int) (bool, error) {
 	db := DB()
 
 	sql := `DELETE * FROM ingredients WHERE id = ?`
-	row, err := db.Exec(sql, id)
+	_, err := db.Exec(sql, id)
 
 	defer db.Close()
 
 	if err != nil {
-		fmt.Println(err.Error())
 		return false, err
 	}
-	fmt.Println(row)
 
 	return true, nil
 }
@@ -120,7 +114,7 @@ func UpdateIngredient(id int, ingredient *Ingredient) (bool, error) {
 		ingredientValues["quantity"] = ingredient.Quantity
 	}
 
-	query := helpers.UpdateBuilder(ingredientValues)
+	query := helpers.UpdateBuilder(ingredientValues, "INGREDIENTS")
 
 	println(query)
 	rows, err := db.Exec(query, id)
