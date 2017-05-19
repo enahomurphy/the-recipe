@@ -1,7 +1,6 @@
 package models
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
@@ -11,9 +10,9 @@ import (
 // Category data to be sent
 // When request is made to the server
 type Category struct {
-	ID          string `json:"id,omitempty"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
+	ID          int    `json:"id,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
 	CreatedAt   string `json:"created_at,omitempty"`
 	UpdatedAt   string `json:"updated_at,omitempty"`
 }
@@ -46,12 +45,13 @@ func GetAllCategory() []Category {
 //GetCategory gets a single user
 func GetCategory(id int) (Category, error) {
 	db := DB()
+	defer db.Close()
+
 	category := Category{}
-	db.Close()
 
-	rows := db.QueryRow("SELECT title, description, updated_at, created_ac FROM categories where id = ? ", id)
+	row := db.QueryRow("SELECT id, title, description, updated_at, created_at FROM categories where id = ? ", id)
 
-	err := rows.Scan(&category)
+	err := row.Scan(&category.ID, &category.Title, &category.Description, &category.UpdatedAt, &category.CreatedAt)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -71,25 +71,10 @@ func GetCategory(id int) (Category, error) {
 func CreateCategory(category *Category) (*Category, error) {
 	db := DB()
 	defer db.Close()
-	var sql, values bytes.Buffer
-	sql.WriteString("INSERT INTO categories (")
-	values.WriteString("VALUES (")
-
-	if category.Title != "" {
-		sql.WriteString("title ")
-		values.WriteString("'" + category.Title + "'")
-	}
-	if category.Description != "" {
-		sql.WriteString(", description ")
-		values.WriteString(", '" + category.Description + "'")
-	}
-	sql.WriteString(") ")
-	sql.WriteString(values.String() + ")")
-	query := sql.String()
-	fmt.Println(query)
-	_, err := db.Exec(sql.String())
+	sql := "INSERT INTO categories (title, description) VALUES (?, ?)"
+	_, err := db.Exec(sql, &category.Title, &category.Description)
 	if err != nil {
-		errMsg := fmt.Errorf("Error creating a user: %s?", err.Error())
+		errMsg := fmt.Errorf("Error creating a category: %s?", err.Error())
 		return category, errMsg
 	}
 	return category, nil

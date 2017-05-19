@@ -52,8 +52,8 @@ func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
 	defer db.Close()
-	err := db.QueryRow("SELECT first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).
-		Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
+	err := db.QueryRow("SELECT id, first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).
+		Scan(&user.ID, &user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
 
 	switch {
 	case err == sql.ErrNoRows:
