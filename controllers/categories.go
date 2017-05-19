@@ -55,7 +55,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	helpers.StatusOk(w, category)
 }
 
-// GetCategory Gets all categorys and sends the data as response
+// GetCategory Gets all category and sends the data as response
 // to the requesting category
 func GetCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
