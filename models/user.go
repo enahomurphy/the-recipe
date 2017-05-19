@@ -22,7 +22,7 @@ type User struct {
 }
 
 // GetAllUser gets all user
-func GetAllUser() []User {
+func GetAllUser() ([]User, error) {
 	db := DB()
 	users := []User{}
 
@@ -32,7 +32,8 @@ func GetAllUser() []User {
 	defer db.Close()
 
 	if err != nil {
-		panic(err)
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return users, errMsg
 	}
 
 	for rows.Next() {
@@ -42,18 +43,17 @@ func GetAllUser() []User {
 			panic(err.Error())
 		}
 		users = append(users, user)
-		fmt.Println(user)
 	}
-	return users
+	return users, nil
 }
 
-// Get gets a single user
+// GetUser gets a single user
 func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
 	defer db.Close()
-
-	err := db.QueryRow("SELECT first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
+	err := db.QueryRow("SELECT first_name, last_name, email, username, profile_pic FROM users where id = ? ", id).
+		Scan(&user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -97,13 +97,11 @@ func DeleteUser(id int) (bool, error) {
 		return false, getErr
 	}
 	sql := `DELETE FROM users WHERE id = ?`
-	row, err := db.Exec(sql, id)
+	_, err := db.Exec(sql, id)
 
 	if err != nil {
 		return false, err
 	}
-	fmt.Println(row)
-
 	return true, nil
 }
 
@@ -136,10 +134,9 @@ func UpdateUser(id int, user *User) (bool, error) {
 		userValues["email"] = user.Email
 	}
 	query := helpers.UpdateBuilder(userValues)
-	println(query)
 	_, UpdateErr := db.Exec(query, id)
 	if UpdateErr != nil {
-		return false, err
+		return false, UpdateErr
 	}
 	return true, nil
 }

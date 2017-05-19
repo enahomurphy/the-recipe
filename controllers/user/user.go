@@ -14,12 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Error message
-type Error struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-}
-
 // Data data to be sent
 // When request is made to the server
 type Data struct {
@@ -37,7 +31,7 @@ type usersResponse struct {
 	Data   []models.User `json:"data"`
 }
 
-// Create creates a
+// Create creates a new user
 func Create(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		FirstName: r.FormValue("first_name"),
@@ -52,102 +46,76 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	decoderErr := decoder.Decode(&user)
 
 	if decoderErr != nil {
-		response := helpers.RespondMessage("Error parsing body set content-type to application/json", http.StatusInternalServerError)
-		fmt.Println(response)
-		w.Header().Set("Content-type", "Application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, response)
-	} else {
-		fmt.Println(helpers.IsValidEmail(user.Email))
-		if user.FirstName == "" || user.LastName == "" ||
-			(user.UserName == "" || len(user.UserName) < 3) || !helpers.IsValidEmail(user.Email) ||
-			(user.Password == "" || len(user.Password) < 6) {
-			errMsg := models.User{
-				FirstName: "first name is required",
-				LastName:  "Last  name is required",
-				UserName:  "Username is required and should be more that 3 characters",
-				Email:     "Email is required and should be valid",
-				Password:  "Password is required and should be more than 6 characters",
-			}
-			w.Header().Set("Content-type", "Application/json")
-			response := helpers.RespondMessages(errMsg, http.StatusBadRequest)
-			fmt.Fprint(w, response)
-		} else {
-			_, dbErr := models.CreateUser(&user)
-
-			if dbErr != nil {
-				response := helpers.RespondMessage(dbErr.Error(), http.StatusBadRequest)
-				w.Header().Set("Content-type", "Application/json")
-				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprintf(w, response)
-			} else {
-				w.Header().Set("Content-type", "Application/json")
-				w.WriteHeader(http.StatusOK)
-				response := helpers.RespondWithData("user created", http.StatusOK, user)
-				fmt.Println(response)
-				fmt.Fprint(w, response)
-			}
-		}
+		helpers.DecoderErrorResponse(w)
+		return
 	}
+	if user.FirstName == "" || user.LastName == "" ||
+		(user.UserName == "" || len(user.UserName) < 3) || !helpers.IsValidEmail(user.Email) ||
+		(user.Password == "" || len(user.Password) < 6) {
+		errMsg := models.User{
+			FirstName: "first name is required",
+			LastName:  "Last  name is required",
+			UserName:  "Username is required and should be more that 3 characters",
+			Email:     "Email is required and should be valid",
+			Password:  "Password is required and should be more than 6 characters",
+		}
+
+		type Error struct {
+			Status  int
+			Message interface{}
+		}
+		newError := Error{Status: http.StatusBadRequest, Message: errMsg}
+		response, _ := json.Marshal(newError)
+		helpers.ResponseWriter(w, http.StatusBadRequest, string(response))
+		return
+	}
+	_, dbErr := models.CreateUser(&user)
+
+	if dbErr != nil {
+		helpers.ServerError(w, dbErr)
+		return
+	}
+	helpers.StatusOk(w, user)
 }
 
 // GetUser Gets all users and sends the data as response
 // to the requesting user
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	fmt.Println(r.Context())
 
 	id, parseErr := strconv.Atoi(vars["id"])
 	if parseErr != nil {
-		w.Header().Set("Content-type", "Application/json")
-		errMsg := helpers.RespondMessage(parseErr.Error(), http.StatusInternalServerError)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, errMsg)
-	} else {
-		user, err := models.GetUser(id)
-		if err != nil {
-			w.Header().Set("Content-type", "Application/json")
-			errMsg := helpers.RespondMessage(err.Error(), http.StatusBadRequest)
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, errMsg)
-		} else {
-			w.Header().Set("Content-type", "Application/json")
-			w.WriteHeader(http.StatusOK)
-			response := helpers.RespondWithData("user deleted", http.StatusOK, user)
-			fmt.Fprintf(w, response)
-		}
+		helpers.DecoderErrorResponse(w)
+		return
 	}
-
 	user, err := models.GetUser(id)
-
 	if err != nil {
-		w.Header().Set("Content-type", "Application/json")
-		errMsg := helpers.RespondMessage(err.Error(), http.StatusBadRequest)
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, errMsg)
-	} else {
-		response := helpers.RespondWithData("", http.StatusOK, user)
-		fmt.Println(w, response)
+		helpers.StatusNotFound(w, err)
+		return
 	}
+	helpers.StatusOk(w, user)
 
 }
 
 // GetAllUsers Gets all users and sends the data as response
 // to the requesting user
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users := models.GetAllUser()
-	fmt.Println(users)
+	users, err := models.GetAllUser()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 	response := usersResponse{
 		Status: http.StatusOK,
 		Data:   users,
 	}
 	result, _ := json.Marshal(response)
 
-	w.Header().Set("Content-type", "Application/json")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, string(result))
+	helpers.ResponseWriter(w, http.StatusOK, string(result))
 }
 
-//Updates a  user detail in the database
+//Update updates user's detail
 func Update(w http.ResponseWriter, r *http.Request) {
 	user := models.User{
 		FirstName: r.FormValue("first_name"),
@@ -162,53 +130,34 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	decoderErr := decoder.Decode(&user)
 
 	if decoderErr != nil {
-		response := helpers.RespondMessage("Error parsing body set content-type to application/json", http.StatusInternalServerError)
-		fmt.Println(response)
-		w.Header().Set("Content-type", "Application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, response)
-	} else {
-		vars := mux.Vars(r)
-		id, _ := strconv.Atoi(vars["id"])
-
-		_, err := models.UpdateUser(id, &user)
-
-		if err != nil {
-			w.Header().Set("Content-type", "Application/json")
-			errMsg := helpers.RespondMessage(err.Error(), http.StatusBadRequest)
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, errMsg)
-		} else {
-			w.Header().Set("Content-type", "Application/json")
-			w.WriteHeader(http.StatusOK)
-			response := helpers.RespondWithData("user updated", http.StatusOK, user)
-			fmt.Fprintf(w, response)
-		}
+		helpers.DecoderErrorResponse(w)
+		return
 	}
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+
+	_, err := models.UpdateUser(id, &user)
+	fmt.Println(err.Error())
+	if err != nil {
+		helpers.BadRequest(w, err)
+		return
+	}
+	helpers.StatusOk(w, user)
 }
 
-//Deletes a  user detail in the database
+//Delete deletes a user detail
 func Delete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id, parseErr := strconv.Atoi(vars["id"])
 	if parseErr != nil {
-		w.Header().Set("Content-type", "Application/json")
-		errMsg := helpers.RespondMessage(parseErr.Error(), http.StatusInternalServerError)
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, errMsg)
-	} else {
-		_, err := models.DeleteUser(id)
-		if err != nil {
-			w.Header().Set("Content-type", "Application/json")
-			errMsg := helpers.RespondMessage(err.Error(), http.StatusBadRequest)
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, errMsg)
-		} else {
-			w.Header().Set("Content-type", "Application/json")
-			w.WriteHeader(http.StatusOK)
-			response := helpers.RespondMessages("user deleted", http.StatusOK)
-			fmt.Fprintf(w, response)
-		}
+		helpers.DecoderErrorResponse(w)
+		return
 	}
+	_, err := models.DeleteUser(id)
+	if err != nil {
+		helpers.BadRequest(w, err)
+		return
+	}
+	helpers.ResponseWriter(w, http.StatusOK, "User deleted")
 }
