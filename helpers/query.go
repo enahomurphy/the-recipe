@@ -24,14 +24,3 @@ func UpdateBuilder(u map[string]string) string {
 
 	return query.String()
 }
-
-func B(id int) int {
-	return id
-}
-
-// MapBuilder is
-// func MapBuilder(arr []string, vals ) {
-// 	for value, key := range arr {
-
-// 	}
-// }

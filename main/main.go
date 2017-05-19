@@ -14,30 +14,24 @@ import (
 var baseURL = "/api/v1"
 
 func main() {
-
-	// users, err := models.Get(1)
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	router := routes()
 	http.Handle("/", router)
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8083", nil)
 }
 
 func init() {
-	// models.CreateTables(models.DB())
+	models.CreateTables(models.DB())
 }
 
 func routes() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc(baseURL+"/users", user.Get).Methods("GET")
-	router.HandleFunc(baseURL+"/users", test).Methods("POST")
-	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", test).Methods("PUT")
-	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.Update).Methods("DELETE")
+	router.HandleFunc(baseURL+"/users", user.GetAllUsers).Methods("GET")
+	router.HandleFunc(baseURL+"/users", user.Create).Methods("POST")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.GetUser).Methods("GET")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.Update).Methods("PUT")
+	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", user.Delete).Methods("DELETE")
 
-	router.HandleFunc(baseURL+"/recipes", user.Get).Methods("GET")
+	router.HandleFunc(baseURL+"/recipes", user.GetUser).Methods("GET")
 	router.HandleFunc(baseURL+"/recipes", user.Create).Methods("POST")
 	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", user.Update).Methods("PUT")
 	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", user.Update).Methods("DELETE")

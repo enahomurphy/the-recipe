@@ -16,9 +16,12 @@ func CreateTables(*sql.DB) {
 			email varchar(255),
 			username varchar(255),
 			profile_pic text,
+			password VARCHAR(255),
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
+			UNIQUE (username),
+			UNIQUE( email)
 		)`)
 
 	helpers.PrintErr(userErr)
