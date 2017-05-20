@@ -17,7 +17,7 @@ type Category struct {
 	UpdatedAt   string `json:"updated_at,omitempty"`
 }
 
-// GetAllCategory gets all user
+// GetAllCategory gets all category
 func GetAllCategory() ([]Category, error) {
 	db := DB()
 
@@ -30,7 +30,6 @@ func GetAllCategory() ([]Category, error) {
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return nil, errMsg
-
 	}
 
 	for rows.Next() {
@@ -46,7 +45,7 @@ func GetAllCategory() ([]Category, error) {
 	return categories, nil
 }
 
-//GetCategory gets a single user
+//GetCategory gets a single category
 func GetCategory(id int) (Category, error) {
 	db := DB()
 	defer db.Close()
@@ -71,7 +70,7 @@ func GetCategory(id int) (Category, error) {
 	}
 }
 
-//CreateCategory creates a new user
+//CreateCategory creates a new category
 func CreateCategory(category *Category) (*Category, error) {
 	db := DB()
 	defer db.Close()
@@ -84,8 +83,8 @@ func CreateCategory(category *Category) (*Category, error) {
 	return category, nil
 }
 
-// DeleteCategory user from database
-// NB: this method wipes all user details
+// DeleteCategory category from database
+// NB: this method wipes all category details
 // recipe ans ingredients inclusive
 func DeleteCategory(id int) (bool, error) {
 	db := DB()
@@ -103,7 +102,7 @@ func DeleteCategory(id int) (bool, error) {
 }
 
 // UpdateCategory updates category details base on the values sent
-// takes the user id and user struct containing details to be update
+// takes the category id and category struct containing details to be update
 func UpdateCategoryById(id int, category *Category) (bool, error) {
 	db := DB()
 
@@ -124,11 +123,9 @@ func UpdateCategoryById(id int, category *Category) (bool, error) {
 	}
 
 	query := helpers.UpdateBuilder(categoryValues, "CATEGORIES")
-	fmt.Println(query)
 	_, UpdateErr := db.Exec(query, id)
 	if UpdateErr != nil {
 		return false, UpdateErr
 	}
-
 	return true, nil
 }

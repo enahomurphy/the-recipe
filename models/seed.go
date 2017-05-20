@@ -59,6 +59,7 @@ func CreateTables(*sql.DB) {
 			userID int,
 			categoryID int,
 			description text(300),
+			image_url text,
 			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id)

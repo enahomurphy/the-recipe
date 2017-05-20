@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"recipe/helpers"
 )
 
 // User data to be sent
@@ -90,16 +91,13 @@ func DeleteUser(id int) (bool, error) {
 	db := DB()
 
 	defer db.Close()
-	_, getErr := GetUser(id)
 
-	if getErr != nil {
-		return false, getErr
-	}
 	sql := `DELETE FROM users WHERE id = ?`
 	_, err := db.Exec(sql, id)
 
 	if err != nil {
-		return false, err
+		errMsg := fmt.Errorf("Error Deletin a category: %s?", err.Error())
+		return false, errMsg
 	}
 	return true, nil
 }
@@ -132,12 +130,12 @@ func UpdateUserByID(id int, user *User) (bool, error) {
 	if user.Email != "" {
 		userValues["email"] = user.Email
 	}
-	// table := "USERS"
-	// query := helpers.UpdateBuilder(userValues, table)
+	table := "USERS"
+	query := helpers.UpdateBuilder(userValues, table)
 
-	// _, UpdateErr := db.Exec(query, id)
-	// if UpdateErr != nil {
-	// 	return false, UpdateErr
-	// }
+	_, UpdateErr := db.Exec(query, id)
+	if UpdateErr != nil {
+		return false, UpdateErr
+	}
 	return true, nil
 }

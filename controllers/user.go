@@ -145,15 +145,5 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		helpers.BadRequest(w, err)
 		return
 	}
-
-	type Message struct {
-		Status  int    `json:"status"`
-		Message string `json:"message"`
-	}
-
-	response := Message{
-		Status:  http.StatusOK,
-		Message: "user deleted",
-	}
-	helpers.StatusOk(w, response)
+	helpers.StatusOkMessage(w, "user with id"+vars["id"]+"deleted")
 }
