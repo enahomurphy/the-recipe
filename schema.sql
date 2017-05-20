@@ -47,3 +47,4 @@ ALTER TABLE recipes
 
 ALTER TABLE recipes
 			ADD FOREIGN KEY (ingredientID) REFERENCES ingredients(id);
+
