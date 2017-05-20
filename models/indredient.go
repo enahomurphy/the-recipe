@@ -3,8 +3,8 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"recipe/helpers"
+	"strings"
 )
 
 // Ingredient data to be sent
@@ -20,44 +20,44 @@ type Ingredient struct {
 }
 
 // GetAllIngredient gets all ingredient
-func GetAllIngredient() []Ingredient {
+func GetAllIngredient() ([]Ingredient, error) {
 	db := DB()
 	ingredients := []Ingredient{}
-
-	rows, err := db.Query(`SELECT id, name, quantity, recipeID, unit created_at, updated_at FROM recipes`)
-
-	defer db.Close()
+	rows, err := db.Query(`SELECT id, name, quantity, recipeID, unit created_at, updated_at FROM ingredients`)
 
 	if err != nil {
-		panic(err)
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return nil, errMsg
 	}
 
 	for rows.Next() {
 		ingredient := Ingredient{}
-
-		if err := rows.Scan(&ingredient); err != nil {
-			panic(err.Error())
+		if rows.Scan(&ingredient.ID, &ingredient.Name, &ingredient.Quantity,
+			&ingredient.RecipeID, &ingredient.Unit, &ingredient.CreatedAt, &ingredient.UpdatedAt); err != nil {
+			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+			return nil, errMsg
 		}
 		ingredients = append(ingredients, ingredient)
 	}
-	return ingredients
+	return ingredients, nil
 }
 
 // GetIngredient gets a single ingredient
 func GetIngredient(id int) (Ingredient, error) {
 	db := DB()
-	ingredient := Ingredient{}
-	db.Close()
+	defer db.Close()
 
-	err := db.QueryRow(`SELECT name, quantity, recipeID, unit, created_at, 
-		updated_at FROM ingredients where id = ? `, id).Scan(&ingredient)
+	ingredient := Ingredient{}
+	err := db.QueryRow(`SELECT id, name, quantity, recipeID, unit, created_at, 
+		updated_at FROM ingredients where id = ? `, id).
+		Scan(&ingredient.ID, &ingredient.Name, &ingredient.Quantity, &ingredient.RecipeID, &ingredient.Unit,
+			&ingredient.CreatedAt, &ingredient.UpdatedAt)
 
 	switch {
 	case err == sql.ErrNoRows:
 		errMsg := fmt.Errorf("ingredient with (id %d) does not exist", id)
 		return ingredient, errMsg
 	case err != nil:
-		log.Fatal("An error occurred", err.Error())
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return ingredient, errMsg
 	default:
@@ -66,12 +66,19 @@ func GetIngredient(id int) (Ingredient, error) {
 }
 
 // CreateIngredient creates a new recipe
-func CreateIngredient() {
+func CreateIngredient(ingredient *Ingredient) (*Ingredient, error) {
 	db := DB()
-	ingredient := Ingredient{}
-	sql := `INSERT INTO recipes (name, quantity, recipeID, unit) VALUES(?, ?, ?, ?)`
-	_, err := db.Exec(sql, &ingredient)
-	if err != nil {
+	sql := `INSERT INTO ingredients (name, quantity, recipeID, unit) VALUES(?, ?, ?, ?)`
+	_, err := db.Exec(sql, &ingredient.Name, &ingredient.Quantity, &ingredient.RecipeID, &ingredient.Unit)
+	switch {
+	case err != nil && strings.Contains(err.Error(), "recipeID"):
+		errMsg := fmt.Errorf("Error creating a ingredients: %s", "recipeID does not exist")
+		return nil, errMsg
+	case err != nil:
+		errMsg := fmt.Errorf("Error creating a ingredients: %s", err.Error())
+		return nil, errMsg
+	default:
+		return ingredient, nil
 	}
 }
 
@@ -81,16 +88,22 @@ func CreateIngredient() {
 func DeleteIngredient(id int) (bool, error) {
 	db := DB()
 
-	sql := `DELETE * FROM ingredients WHERE id = ?`
-	_, err := db.Exec(sql, id)
-
 	defer db.Close()
 
-	if err != nil {
-		return false, err
+	query := `DELETE FROM ingredients WHERE id = ?`
+	row, err := db.Exec(query, id)
+	fmt.Println(row.RowsAffected())
+	RowsAffected, _ := row.RowsAffected()
+	switch {
+	case RowsAffected == 0:
+		errMsg := fmt.Errorf("ingredient with (id %d) does not exist", id)
+		return false, errMsg
+	case err != nil:
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return false, errMsg
+	default:
+		return true, nil
 	}
-
-	return true, nil
 }
 
 // UpdateIngredient updates recipe details base on the values sent
@@ -115,13 +128,9 @@ func UpdateIngredient(id int, ingredient *Ingredient) (bool, error) {
 	}
 
 	query := helpers.UpdateBuilder(ingredientValues, "INGREDIENTS")
-
-	println(query)
-	rows, err := db.Exec(query, id)
-	if err != nil {
-		panic(err.Error())
-	} else {
-		println(rows)
+	_, UpdateErr := db.Exec(query, id)
+	if UpdateErr != nil {
+		return false, UpdateErr
 	}
 
 	return true, nil

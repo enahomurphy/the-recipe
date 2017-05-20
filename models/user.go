@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"recipe/helpers"
 )
 
@@ -60,7 +59,6 @@ func GetUser(id int) (User, error) {
 		errMsg := fmt.Errorf("user with (id %d) does not exist", id)
 		return user, errMsg
 	case err != nil:
-		log.Fatal("An error occurred", err.Error())
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return user, errMsg
 	default:

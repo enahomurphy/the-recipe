@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"recipe/helpers"
 	"strings"
 )
@@ -62,7 +61,6 @@ func GetRecipe(id int) (Recipe, error) {
 		errMsg := fmt.Errorf("recipe with (id %d) does not exist", id)
 		return recipe, errMsg
 	case err != nil:
-		log.Fatal("An error occurred", err.Error())
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return recipe, errMsg
 	default:
@@ -100,14 +98,11 @@ func DeleteRecipe(id int) (bool, error) {
 	db := DB()
 	defer db.Close()
 	sql := `DELETE * FROM recipes WHERE id = ?`
-	row, err := db.Exec(sql, id)
+	_, err := db.Exec(sql, id)
 
 	if err != nil {
-		fmt.Println(err.Error())
 		return false, err
 	}
-	fmt.Println(row)
-
 	return true, nil
 }
 
