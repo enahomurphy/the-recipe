@@ -15,7 +15,7 @@ type Recipe struct {
 	Name        string `json:"name,omitempty"`
 	UserID      string `json:"userID,omitempty"`
 	CategoryID  string `json:"catergoryID,omitempty"`
-	Description string `json:"description,omitempty"`
+	Description string `json:"description"`
 	CreatedAt   string `json:"created_at,omitempty"`
 	UpdatedAt   string `json:"updated_at,omitempty"`
 }
@@ -49,12 +49,13 @@ func GetAllRecipe() []Recipe {
 // GetRecipe gets a single recipe
 func GetRecipe(id int) (Recipe, error) {
 	db := DB()
+	defer db.Close()
 	recipe := Recipe{}
-	db.Close()
 
-	err := db.QueryRow(`SELECT name, userID, categoryID, description, created_at, 
-		updated_at FROM recipes where id = ? `, id).Scan(&recipe)
-
+	err := db.QueryRow(`SELECT id, name, userID, categoryID, description, created_at, 
+		updated_at FROM recipes where id = ? `, id).
+		Scan(&recipe.ID, &recipe.Name, &recipe.UserID,
+			&recipe.CategoryID, &recipe.Description, &recipe.CreatedAt, &recipe.UpdatedAt)
 	switch {
 	case err == sql.ErrNoRows:
 		fmt.Println("No rows with that id found", err.Error())
