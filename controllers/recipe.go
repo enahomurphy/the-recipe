@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"recipe/helpers"
 	"recipe/models"
@@ -23,6 +25,7 @@ func CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		Name:        r.FormValue("name"),
 		UserID:      r.FormValue("userID"),
 		CategoryID:  r.FormValue("categoryID"),
+		Image:       r.FormValue("image_url"),
 		Description: r.FormValue("description"),
 	}
 	decoder := json.NewDecoder(r.Body)
@@ -73,64 +76,65 @@ func GetRecipe(w http.ResponseWriter, r *http.Request) {
 	helpers.StatusOk(w, Recipe)
 }
 
-// // GetAllRecipe Gets all Recipe and sends the data as response
-// // to the requesting Recipe
-// func GetAllRecipe(w http.ResponseWriter, r *http.Request) {
-// 	Recipe, err := models.GetAllRecipe()
-// 	if err != nil {
-// 		helpers.ServerError(w, err)
-// 		return
-// 	}
-// 	response := RecipeResponse{
-// 		Status: http.StatusOK,
-// 		Data:   Recipe,
-// 	}
-// 	result, _ := json.Marshal(response)
+// GetAllRecipe Gets all Recipe and sends the data as response
+// to the requesting Recipe
+func GetAllRecipe(w http.ResponseWriter, r *http.Request) {
+	Recipe, err := models.GetAllRecipe()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	response := RecipeResponse{
+		Status: http.StatusOK,
+		Data:   Recipe,
+	}
+	result, _ := json.Marshal(response)
 
-// 	helpers.ResponseWriter(w, http.StatusOK, string(result))
-// }
+	helpers.ResponseWriter(w, http.StatusOK, string(result))
+}
 
-// //UpdateRecipe updates Recipe's detail
-// func UpdateRecipe(w http.ResponseWriter, r *http.Request) {
-// 	Recipe := models.Recipe{
-// 		Title:       r.FormValue("title"),
-// 		Description: r.FormValue("description"),
-// 	}
+//UpdateRecipe updates Recipe's detail
+func UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+	Recipe := models.Recipe{
+		Name:        r.FormValue("name"),
+		UserID:      r.FormValue("userID"),
+		CategoryID:  r.FormValue("categoryID"),
+		Image:       r.FormValue("image_url"),
+		Description: r.FormValue("description"),
+	}
+	decoder := json.NewDecoder(r.Body)
+	decoderErr := decoder.Decode(&Recipe)
 
-// 	decoder := json.NewDecoder(r.Body)
-// 	decoderErr := decoder.Decode(&Recipe)
+	if decoderErr != nil {
+		helpers.DecoderErrorResponse(w)
+		return
+	}
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
 
-// 	if decoderErr != nil {
-// 		helpers.DecoderErrorResponse(w)
-// 		return
-// 	}
-// 	vars := mux.Vars(r)
-// 	id, _ := strconv.Atoi(vars["id"])
+	fmt.Println(id)
 
-// 	fmt.Println(id)
+	_, err := models.UpdateRecipe(id, &Recipe)
+	if err != nil {
+		helpers.BadRequest(w, errors.New(err.Error()))
+		return
+	}
+	helpers.StatusOkMessage(w, "Recipe updated")
+}
 
-// 	_, err := models.UpdateRecipeById(id, &Recipe)
-// 	// fmt.Println(err.Error())
-// 	if err != nil {
-// 		helpers.BadRequest(w, errors.New(err.Error()))
-// 		return
-// 	}
-// 	helpers.StatusOkMessage(w, "Recipe updated")
-// }
+// DeleteRecipe deletes a Recipe detail
+func DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 
-// // DeleteRecipe deletes a Recipe detail
-// func DeleteRecipe(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-
-// 	id, parseErr := strconv.Atoi(vars["id"])
-// 	if parseErr != nil {
-// 		helpers.DecoderErrorResponse(w)
-// 		return
-// 	}
-// 	_, err := models.DeleteRecipe(id)
-// 	if err != nil {
-// 		helpers.BadRequest(w, err)
-// 		return
-// 	}
-// 	helpers.StatusOkMessage(w, "Recipe deleted")
-// }
+	id, parseErr := strconv.Atoi(vars["id"])
+	if parseErr != nil {
+		helpers.DecoderErrorResponse(w)
+		return
+	}
+	_, err := models.DeleteRecipe(id)
+	if err != nil {
+		helpers.BadRequest(w, err)
+		return
+	}
+	helpers.StatusOkMessage(w, "Recipe deleted")
+}

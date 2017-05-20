@@ -30,7 +30,6 @@ func GetAllCategory() ([]Category, error) {
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return nil, errMsg
-
 	}
 
 	for rows.Next() {
@@ -124,11 +123,9 @@ func UpdateCategoryById(id int, category *Category) (bool, error) {
 	}
 
 	query := helpers.UpdateBuilder(categoryValues, "CATEGORIES")
-	fmt.Println(query)
 	_, UpdateErr := db.Exec(query, id)
 	if UpdateErr != nil {
 		return false, UpdateErr
 	}
-
 	return true, nil
 }

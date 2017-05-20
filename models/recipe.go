@@ -14,36 +14,37 @@ type Recipe struct {
 	ID          string `json:"id,omitempty"`
 	Name        string `json:"name,omitempty"`
 	UserID      string `json:"userID,omitempty"`
-	CategoryID  string `json:"catergoryID,omitempty"`
+	CategoryID  string `json:"categoryID,omitempty"`
 	Description string `json:"description"`
+	Image       string `json:"image_url"`
 	CreatedAt   string `json:"created_at,omitempty"`
 	UpdatedAt   string `json:"updated_at,omitempty"`
 }
 
 // GetAllRecipe gets all recipe
-func GetAllRecipe() []Recipe {
+func GetAllRecipe() ([]Recipe, error) {
 	db := DB()
-	recipes := []Recipe{}
-
-	rows, err := db.Query(`SELECT id, name, userID, categoryID, description created_at, updated_at FROM recipes`)
-
 	defer db.Close()
 
-	if err != nil {
-		panic(err)
-	}
+	recipes := []Recipe{}
 
+	rows, err := db.Query(`SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes`)
+
+	if err != nil {
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return nil, errMsg
+	}
 	for rows.Next() {
 		recipe := Recipe{}
-
-		if err := rows.Scan(&recipe.ID, &recipe.Name, &recipe.UserID, &recipe.CategoryID,
-			&recipe.Description, &recipe.CreatedAt, &recipe.UpdatedAt); err != nil {
-			panic(err.Error())
+		if err := rows.Scan(&recipe.ID, &recipe.Name, &recipe.UserID,
+			&recipe.CategoryID, &recipe.Description, &recipe.Image, &recipe.CreatedAt, &recipe.UpdatedAt); err != nil {
+			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+			return nil, errMsg
 		}
 		recipes = append(recipes, recipe)
 		fmt.Println(recipe)
 	}
-	return recipes
+	return recipes, nil
 }
 
 // GetRecipe gets a single recipe
@@ -52,10 +53,9 @@ func GetRecipe(id int) (Recipe, error) {
 	defer db.Close()
 	recipe := Recipe{}
 
-	err := db.QueryRow(`SELECT id, name, userID, categoryID, description, created_at, 
-		updated_at FROM recipes where id = ? `, id).
+	err := db.QueryRow(`SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes where id = ? `, id).
 		Scan(&recipe.ID, &recipe.Name, &recipe.UserID,
-			&recipe.CategoryID, &recipe.Description, &recipe.CreatedAt, &recipe.UpdatedAt)
+			&recipe.CategoryID, &recipe.Description, &recipe.Image, &recipe.CreatedAt, &recipe.UpdatedAt)
 	switch {
 	case err == sql.ErrNoRows:
 		fmt.Println("No rows with that id found", err.Error())
@@ -75,8 +75,8 @@ func CreateRecipe(recipe *Recipe) (*Recipe, error) {
 	db := DB()
 	defer db.Close()
 	fmt.Println(recipe)
-	sql := `INSERT INTO recipes (name, userID, categoryID, description) VALUES(?, ?, ?, ?)`
-	_, err := db.Exec(sql, &recipe.Name, &recipe.UserID, &recipe.CategoryID, &recipe.Description)
+	sql := `INSERT INTO recipes (name, userID, categoryID, description, image_url) VALUES(?, ?, ?, ?, ?)`
+	_, err := db.Exec(sql, &recipe.Name, &recipe.UserID, &recipe.CategoryID, &recipe.Description, &recipe.Image)
 
 	switch {
 	case err != nil && strings.Contains(err.Error(), "categoryID"):
@@ -98,11 +98,9 @@ func CreateRecipe(recipe *Recipe) (*Recipe, error) {
 // recipe ans ingredients inclusive
 func DeleteRecipe(id int) (bool, error) {
 	db := DB()
-
+	defer db.Close()
 	sql := `DELETE * FROM recipes WHERE id = ?`
 	row, err := db.Exec(sql, id)
-
-	defer db.Close()
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -119,6 +117,8 @@ func DeleteRecipe(id int) (bool, error) {
 func UpdateRecipe(id int, recipe *Recipe) (bool, error) {
 	db := DB()
 
+	defer db.Close()
+
 	recipeValues := map[string]string{}
 
 	if recipe.Name != "" {
@@ -133,16 +133,14 @@ func UpdateRecipe(id int, recipe *Recipe) (bool, error) {
 	if recipe.Description != "" {
 		recipeValues["description"] = recipe.Description
 	}
-
-	query := helpers.UpdateBuilder(recipeValues, "RECIPES")
-
-	println(query)
-	rows, err := db.Exec(query, id)
-	if err != nil {
-		panic(err.Error())
-	} else {
-		println(rows)
+	if recipe.Image != "" {
+		recipeValues["image_url"] = recipe.Image
 	}
 
+	query := helpers.UpdateBuilder(recipeValues, "RECIPES")
+	_, UpdateErr := db.Exec(query, id)
+	if UpdateErr != nil {
+		return false, UpdateErr
+	}
 	return true, nil
 }
