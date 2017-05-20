@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"recipe/helpers"
 )
 
@@ -62,7 +61,6 @@ func GetCategory(id int) (Category, error) {
 		errMsg := fmt.Errorf("category with (id %d) does not exist", id)
 		return category, errMsg
 	case err != nil:
-		log.Fatal("An error occurred", err.Error())
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
 		return category, errMsg
 	default:
