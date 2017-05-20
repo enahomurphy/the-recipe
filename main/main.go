@@ -35,11 +35,11 @@ func routes() *mux.Router {
 	router.HandleFunc(baseURL+"/categories/{id:[0-9]+}", controllers.UpdateCategory).Methods("PUT")
 	router.HandleFunc(baseURL+"/categories/{id:[0-9]+}", controllers.DeleteCategory).Methods("DELETE")
 
-	// router.HandleFunc(baseURL+"/recipes", controllers.GetRecipe).Methods("GET")
+	router.HandleFunc(baseURL+"/recipes", controllers.GetAllRecipe).Methods("GET")
 	router.HandleFunc(baseURL+"/recipes", controllers.CreateRecipe).Methods("POST")
 	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.GetRecipe).Methods("GET")
-	// router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.UpdateRecipe).Methods("PUT")
-	// router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.DeleteRecipe).Methods("DELETE")
+	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.UpdateRecipe).Methods("PUT")
+	router.HandleFunc(baseURL+"/recipes/{id:[0-9]+}", controllers.DeleteRecipe).Methods("DELETE")
 
 	return router
 }
