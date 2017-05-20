@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"recipe/helpers"
 	"recipe/models"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 // RecipeResponse is
@@ -54,22 +56,22 @@ func CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	helpers.StatusOkMessage(w, "Recipe created")
 }
 
-// // GetRecipe Gets all Recipe and sends the data as response
-// // to the requesting Recipe
-// func GetRecipe(w http.ResponseWriter, r *http.Request) {
-// 	vars := mux.Vars(r)
-// 	id, parseErr := strconv.Atoi(vars["id"])
-// 	if parseErr != nil {
-// 		helpers.DecoderErrorResponse(w)
-// 		return
-// 	}
-// 	Recipe, err := models.GetRecipe(id)
-// 	if err != nil {
-// 		helpers.StatusNotFound(w, err)
-// 		return
-// 	}
-// 	helpers.StatusOk(w, Recipe)
-// }
+// GetRecipe Gets all Recipe and sends the data as response
+// to the requesting Recipe
+func GetRecipe(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, parseErr := strconv.Atoi(vars["id"])
+	if parseErr != nil {
+		helpers.DecoderErrorResponse(w)
+		return
+	}
+	Recipe, err := models.GetRecipe(id)
+	if err != nil {
+		helpers.StatusNotFound(w, err)
+		return
+	}
+	helpers.StatusOk(w, Recipe)
+}
 
 // // GetAllRecipe Gets all Recipe and sends the data as response
 // // to the requesting Recipe
