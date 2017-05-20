@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"recipe/helpers"
+	"strings"
 )
 
 // Recipe data to be sent
@@ -69,15 +70,26 @@ func GetRecipe(id int) (Recipe, error) {
 }
 
 // CreateRecipe creates a new recipe
-func CreateRecipe() {
+func CreateRecipe(recipe *Recipe) (*Recipe, error) {
 	db := DB()
-	recipe := Recipe{}
+	defer db.Close()
+	fmt.Println(recipe)
 	sql := `INSERT INTO recipes (name, userID, categoryID, description) VALUES(?, ?, ?, ?)`
-	row, err := db.Exec(sql, &recipe)
-	if err != nil {
-		fmt.Println(err.Error())
+	_, err := db.Exec(sql, &recipe.Name, &recipe.UserID, &recipe.CategoryID, &recipe.Description)
+
+	switch {
+	case err != nil && strings.Contains(err.Error(), "categoryID"):
+		errMsg := fmt.Errorf("Error creating a recipe: %s", "category does not exist")
+		return recipe, errMsg
+	case err != nil && strings.Contains(err.Error(), "userID"):
+		errMsg := fmt.Errorf("Error creating a recipe: %s", "user does not exist")
+		return recipe, errMsg
+	case err != nil:
+		errMsg := fmt.Errorf("Error creating a recipe: %s", err.Error())
+		return recipe, errMsg
+	default:
+		return recipe, nil
 	}
-	fmt.Println(row)
 }
 
 // DeleteRecipe recipe from database

@@ -2,57 +2,133 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
+	"recipe/helpers"
+	"recipe/models"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Data data to be sent
-// When request is made to the server
-type Data struct {
-	ID        string `json:"id,omitempty"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	UserName  string `json:"username"`
-	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+// RecipeResponse is
+type RecipeResponse struct {
+	Status int             `json:"status"`
+	Data   []models.Recipe `json:"data"`
 }
 
-// Create creates a
-func Create(w http.ResponseWriter, r *http.Request) {
-
-	user := Data{
-		FirstName: r.FormValue("first_name"),
-		LastName:  r.FormValue("last_name"),
-		UserName:  r.FormValue("username"),
-		Email:     r.FormValue("email"),
-		CreatedAt: time.Now().String(),
-		UpdatedAt: time.Now().String(),
+// CreateRecipe creates a new Recipe
+func CreateRecipe(w http.ResponseWriter, r *http.Request) {
+	Recipe := models.Recipe{
+		Name:        r.FormValue("name"),
+		UserID:      r.FormValue("userID"),
+		CategoryID:  r.FormValue("categoryID"),
+		Description: r.FormValue("description"),
 	}
+	decoder := json.NewDecoder(r.Body)
+	decoderErr := decoder.Decode(&Recipe)
 
-	resData, err := json.Marshal(user)
-	if err != nil {
-		fmt.Println(err)
+	if decoderErr != nil {
+		helpers.DecoderErrorResponse(w)
+		return
 	}
+	if Recipe.Name == "" || Recipe.UserID == "" || Recipe.CategoryID == "" {
+		errMsg := models.Recipe{
+			Name:       "Name  is required",
+			UserID:     "User id is required",
+			CategoryID: "Category id is required",
+		}
+		type Error struct {
+			Status  int
+			Message interface{}
+		}
+		newError := Error{Status: http.StatusBadRequest, Message: errMsg}
+		response, _ := json.Marshal(newError)
+		helpers.ResponseWriter(w, http.StatusBadRequest, string(response))
+		return
+	}
+	_, dbErr := models.CreateRecipe(&Recipe)
 
-	fmt.Fprint(w, string(resData))
+	if dbErr != nil {
+		helpers.ServerError(w, dbErr)
+		return
+	}
+	helpers.StatusOkMessage(w, "Recipe created")
 }
 
-//Get all users in the database
-func Get(w http.ResponseWriter, r *http.Request) {
+// // GetRecipe Gets all Recipe and sends the data as response
+// // to the requesting Recipe
+// func GetRecipe(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+// 	id, parseErr := strconv.Atoi(vars["id"])
+// 	if parseErr != nil {
+// 		helpers.DecoderErrorResponse(w)
+// 		return
+// 	}
+// 	Recipe, err := models.GetRecipe(id)
+// 	if err != nil {
+// 		helpers.StatusNotFound(w, err)
+// 		return
+// 	}
+// 	helpers.StatusOk(w, Recipe)
+// }
 
-	fmt.Fprintf(w, "get all users")
-}
+// // GetAllRecipe Gets all Recipe and sends the data as response
+// // to the requesting Recipe
+// func GetAllRecipe(w http.ResponseWriter, r *http.Request) {
+// 	Recipe, err := models.GetAllRecipe()
+// 	if err != nil {
+// 		helpers.ServerError(w, err)
+// 		return
+// 	}
+// 	response := RecipeResponse{
+// 		Status: http.StatusOK,
+// 		Data:   Recipe,
+// 	}
+// 	result, _ := json.Marshal(response)
 
-//Updates a  user detail in the database
-func Update(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "get all users")
-}
+// 	helpers.ResponseWriter(w, http.StatusOK, string(result))
+// }
 
-//Deletes a  user detail in the database
-func Delete(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "get all users")
-}
+// //UpdateRecipe updates Recipe's detail
+// func UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+// 	Recipe := models.Recipe{
+// 		Title:       r.FormValue("title"),
+// 		Description: r.FormValue("description"),
+// 	}
+
+// 	decoder := json.NewDecoder(r.Body)
+// 	decoderErr := decoder.Decode(&Recipe)
+
+// 	if decoderErr != nil {
+// 		helpers.DecoderErrorResponse(w)
+// 		return
+// 	}
+// 	vars := mux.Vars(r)
+// 	id, _ := strconv.Atoi(vars["id"])
+
+// 	fmt.Println(id)
+
+// 	_, err := models.UpdateRecipeById(id, &Recipe)
+// 	// fmt.Println(err.Error())
+// 	if err != nil {
+// 		helpers.BadRequest(w, errors.New(err.Error()))
+// 		return
+// 	}
+// 	helpers.StatusOkMessage(w, "Recipe updated")
+// }
+
+// // DeleteRecipe deletes a Recipe detail
+// func DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+
+// 	id, parseErr := strconv.Atoi(vars["id"])
+// 	if parseErr != nil {
+// 		helpers.DecoderErrorResponse(w)
+// 		return
+// 	}
+// 	_, err := models.DeleteRecipe(id)
+// 	if err != nil {
+// 		helpers.BadRequest(w, err)
+// 		return
+// 	}
+// 	helpers.StatusOkMessage(w, "Recipe deleted")
+// }

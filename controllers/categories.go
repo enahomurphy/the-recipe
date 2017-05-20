@@ -51,7 +51,7 @@ func CreateCategory(w http.ResponseWriter, r *http.Request) {
 	_, dbErr := models.CreateCategory(&category)
 
 	if dbErr != nil {
-		helpers.ServerError(w, dbErr)
+		helpers.ServerError(w, errors.New(dbErr.Error()))
 		return
 	}
 	helpers.StatusOk(w, category)
