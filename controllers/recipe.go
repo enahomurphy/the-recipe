@@ -15,8 +15,9 @@ import (
 
 // RecipeResponse is
 type RecipeResponse struct {
-	Status int             `json:"status"`
-	Data   []models.Recipe `json:"data"`
+	Status   int             `json:"status"`
+	MetaData interface{}     `json:"meta_data,omitempty"`
+	Data     []models.Recipe `json:"data"`
 }
 
 // CreateRecipe creates a new Recipe
@@ -79,14 +80,22 @@ func GetRecipe(w http.ResponseWriter, r *http.Request) {
 // GetAllRecipe Gets all Recipe and sends the data as response
 // to the requesting Recipe
 func GetAllRecipe(w http.ResponseWriter, r *http.Request) {
-	Recipe, err := models.GetAllRecipe()
+	query, err := helpers.GetQuery(r)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	recipe, count, err := models.GetAllRecipe(query)
+	metaData := helpers.MetaData(count, len(recipe), &query)
+
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
 	response := RecipeResponse{
-		Status: http.StatusOK,
-		Data:   Recipe,
+		Status:   http.StatusOK,
+		MetaData: metaData,
+		Data:     recipe,
 	}
 	result, _ := json.Marshal(response)
 
@@ -111,8 +120,6 @@ func UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
-
-	fmt.Println(id)
 
 	_, err := models.UpdateRecipe(id, &Recipe)
 	if err != nil {

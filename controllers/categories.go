@@ -7,8 +7,6 @@ import (
 	"recipe/models"
 	"strconv"
 
-	"fmt"
-
 	"errors"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -17,8 +15,9 @@ import (
 
 // CategoryResponse is
 type CategoryResponse struct {
-	Status int               `json:"status"`
-	Data   []models.Category `json:"data"`
+	Status   int               `json:"status"`
+	MetaData interface{}       `json:"meta_data,omitempty"`
+	Data     []models.Category `json:"data"`
 }
 
 // CreateCategory creates a new category
@@ -77,21 +76,30 @@ func GetCategory(w http.ResponseWriter, r *http.Request) {
 // GetAllcategory Gets all category and sends the data as response
 // to the requesting category
 func GetAllcategory(w http.ResponseWriter, r *http.Request) {
-	category, err := models.GetAllCategory()
+	query, err := helpers.GetQuery(r)
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
+	category, count, err := models.GetAllCategory(query)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	metaData := helpers.MetaData(count, len(category), &query)
+
 	response := CategoryResponse{
-		Status: http.StatusOK,
-		Data:   category,
+		Status:   http.StatusOK,
+		Data:     category,
+		MetaData: metaData,
 	}
 	result, _ := json.Marshal(response)
 
 	helpers.ResponseWriter(w, http.StatusOK, string(result))
 }
 
-//UpdateCategory updates category's detail
+// UpdateCategory updates category's detail
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	category := models.Category{
 		Title:       r.FormValue("title"),
@@ -108,10 +116,7 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
 
-	fmt.Println(id)
-
-	_, err := models.UpdateCategoryById(id, &category)
-	// fmt.Println(err.Error())
+	_, err := models.UpdateCategory(id, &category)
 	if err != nil {
 		helpers.BadRequest(w, errors.New(err.Error()))
 		return

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"recipe/helpers"
+	"strconv"
 )
 
 // User data to be sent
@@ -21,29 +22,42 @@ type User struct {
 }
 
 // GetAllUser gets all user
-func GetAllUser() ([]User, error) {
+func GetAllUser(query helpers.Query) ([]User, int, error) {
 	db := DB()
 	users := []User{}
-
-	rows, err := db.Query(`SELECT id, first_name, last_name, 
-		username, email, profile_pic, created_at, updated_at FROM users`)
-
+	limit := strconv.Itoa(query.Limit)
+	offset := strconv.Itoa(query.Offset)
+	var dbQuery string
+	if query.Q == "" {
+		dbQuery = `SELECT id, first_name, last_name,username, email, profile_pic, created_at, updated_at FROM users
+			LIMIT ` + limit + ` OFFSET ` + offset
+	} else {
+		dbQuery = `SELECT id, first_name, last_name,username, email, profile_pic, created_at, updated_at FROM users 
+			WHERE title ILIKE %` + query.Q + `% ` +
+			` LIMIT = ` + limit + ` OFFSET = ` + offset
+	}
+	rows, err := db.Query(dbQuery)
 	defer db.Close()
 
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-		return users, errMsg
+		return nil, 0, errMsg
 	}
 
 	for rows.Next() {
 		user := User{}
 		if err := rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.UserName,
 			&user.Email, &user.ProfilePic, &user.CreatedAt, &user.UpdatedAt); err != nil {
-			panic(err.Error())
+			return nil, 0, err
 		}
 		users = append(users, user)
 	}
-	return users, nil
+	count, countErr := helpers.GetCount(db, "users")
+	if countErr != nil {
+		errMsg := fmt.Errorf("an unknown error occurred %s", countErr.Error())
+		return nil, 0, errMsg
+	}
+	return users, count, nil
 }
 
 // GetUser gets a single user

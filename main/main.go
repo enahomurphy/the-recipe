@@ -46,6 +46,6 @@ func routes() *mux.Router {
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.GetIngredient).Methods("GET")
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.UpdateIngredient).Methods("PUT")
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.DeleteIngredient).Methods("DELETE")
-
+	
 	return router
 }

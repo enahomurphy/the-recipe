@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"recipe/helpers"
+	"strconv"
 	"strings"
 )
 
@@ -20,14 +21,27 @@ type Ingredient struct {
 }
 
 // GetAllIngredient gets all ingredient
-func GetAllIngredient() ([]Ingredient, error) {
+func GetAllIngredient(query *helpers.Query) ([]Ingredient, int, error) {
 	db := DB()
-	ingredients := []Ingredient{}
-	rows, err := db.Query(`SELECT id, name, quantity, recipeID, unit created_at, updated_at FROM ingredients`)
 
+	defer db.Close()
+	ingredients := []Ingredient{}
+
+	limit := strconv.Itoa(query.Limit)
+	offset := strconv.Itoa(query.Offset)
+	var dbQuery string
+	if query.Q == "" {
+		dbQuery = `SELECT id, name, quantity, recipeID, unit created_at, updated_at FROM ingredients
+			LIMIT ` + limit + ` OFFSET ` + offset
+	} else {
+		dbQuery = `SELECT id, name, quantity, recipeID, unit created_at, updated_at FROM ingredients
+			WHERE title ILIKE %` + query.Q + `% ` +
+			` LIMIT = ` + limit + ` OFFSET = ` + offset
+	}
+	rows, err := db.Query(dbQuery)
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-		return nil, errMsg
+		return nil, 0, errMsg
 	}
 
 	for rows.Next() {
@@ -35,11 +49,16 @@ func GetAllIngredient() ([]Ingredient, error) {
 		if rows.Scan(&ingredient.ID, &ingredient.Name, &ingredient.Quantity,
 			&ingredient.RecipeID, &ingredient.Unit, &ingredient.CreatedAt, &ingredient.UpdatedAt); err != nil {
 			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-			return nil, errMsg
+			return nil, 0, errMsg
 		}
 		ingredients = append(ingredients, ingredient)
 	}
-	return ingredients, nil
+	count, countErr := helpers.GetCount(db, "ingredients")
+	if countErr != nil {
+		errMsg := fmt.Errorf("an unknown error occurred %s", countErr.Error())
+		return nil, 0, errMsg
+	}
+	return ingredients, count, nil
 }
 
 // GetIngredient gets a single ingredient
@@ -92,7 +111,6 @@ func DeleteIngredient(id int) (bool, error) {
 
 	query := `DELETE FROM ingredients WHERE id = ?`
 	row, err := db.Exec(query, id)
-	fmt.Println(row.RowsAffected())
 	RowsAffected, _ := row.RowsAffected()
 	switch {
 	case RowsAffected == 0:
