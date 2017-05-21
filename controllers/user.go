@@ -16,8 +16,9 @@ import (
 )
 
 type usersResponse struct {
-	Status int           `json:"status"`
-	Data   []models.User `json:"data"`
+	Status   int           `json:"status"`
+	MetaData interface{}   `json:"meta_data,omitempty"`
+	Data     []models.User `json:"data"`
 }
 
 // CreateUser creates a new user
@@ -88,14 +89,22 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // GetAllUsers Gets all users and sends the data as response
 // to the requesting user
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := models.GetAllUser()
+	query, err := helpers.GetQuery(r)
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
+	users, count, err := models.GetAllUser(query)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	metaData := helpers.MetaData(count, len(users), &query)
+
 	response := usersResponse{
-		Status: http.StatusOK,
-		Data:   users,
+		Status:   http.StatusOK,
+		MetaData: metaData,
+		Data:     users,
 	}
 	result, _ := json.Marshal(response)
 
