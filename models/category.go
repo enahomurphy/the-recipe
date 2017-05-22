@@ -4,31 +4,41 @@ import (
 	"database/sql"
 	"fmt"
 	"recipe/helpers"
+	"strconv"
 )
 
 // Category data to be sent
 // When request is made to the server
 type Category struct {
-	ID          int    `json:"id,omitempty"`
-	Title       string `json:"title,omitempty"`
-	Description string `json:"description"`
-	CreatedAt   string `json:"created_at,omitempty"`
-	UpdatedAt   string `json:"updated_at,omitempty"`
+	MetaData    interface{} `json:"meta_data,omitempty"`
+	ID          int         `json:"id,omitempty"`
+	Title       string      `json:"title,omitempty"`
+	Description string      `json:"description"`
+	CreatedAt   string      `json:"created_at,omitempty"`
+	UpdatedAt   string      `json:"updated_at,omitempty"`
 }
 
 // GetAllCategory gets all category
-func GetAllCategory() ([]Category, error) {
+func GetAllCategory(query helpers.Query) ([]Category, int, error) {
 	db := DB()
 
 	defer db.Close()
 
+	limit := strconv.Itoa(query.Limit)
+	offset := strconv.Itoa(query.Offset)
+	var dbQuery string
 	categories := []Category{}
-
-	rows, err := db.Query(`SELECT id, title, description, created_at, updated_at FROM categories`)
-
+	if query.Q == "" {
+		dbQuery = `SELECT id, title, description, created_at, updated_at FROM categories
+			LIMIT ` + limit + ` OFFSET ` + offset
+	} else {
+		dbQuery = `SELECT id, title, description, created_at, updated_at FROM categories 
+			WHERE title LIKE '%` + query.Q + `%'`
+	}
+	rows, err := db.Query(dbQuery)
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-		return nil, errMsg
+		return nil, 0, errMsg
 	}
 
 	for rows.Next() {
@@ -36,12 +46,16 @@ func GetAllCategory() ([]Category, error) {
 
 		if err := rows.Scan(&category.ID, &category.Title, &category.Description, &category.CreatedAt, &category.UpdatedAt); err != nil {
 			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-			return nil, errMsg
+			return nil, 0, errMsg
 		}
 		categories = append(categories, category)
-		fmt.Println(categories)
 	}
-	return categories, nil
+	count, countErr := helpers.GetCount(db, "categories")
+	if countErr != nil {
+		errMsg := fmt.Errorf("an unknown error occurred %s", countErr.Error())
+		return nil, 0, errMsg
+	}
+	return categories, count, nil
 }
 
 //GetCategory gets a single category
@@ -57,7 +71,6 @@ func GetCategory(id int) (Category, error) {
 
 	switch {
 	case err == sql.ErrNoRows:
-		fmt.Println("No category with that id found", err.Error())
 		errMsg := fmt.Errorf("category with (id %d) does not exist", id)
 		return category, errMsg
 	case err != nil:
@@ -101,7 +114,7 @@ func DeleteCategory(id int) (bool, error) {
 
 // UpdateCategory updates category details base on the values sent
 // takes the category id and category struct containing details to be update
-func UpdateCategoryById(id int, category *Category) (bool, error) {
+func UpdateCategory(id int, category *Category) (bool, error) {
 	db := DB()
 
 	defer db.Close()

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"recipe/helpers"
+	"strconv"
 	"strings"
 )
 
@@ -21,29 +22,37 @@ type Recipe struct {
 }
 
 // GetAllRecipe gets all recipe
-func GetAllRecipe() ([]Recipe, error) {
+func GetAllRecipe(query helpers.Query) ([]Recipe, int, error) {
 	db := DB()
 	defer db.Close()
 
 	recipes := []Recipe{}
+	limit := strconv.Itoa(query.Limit)
+	offset := strconv.Itoa(query.Offset)
+	var dbQuery string
+	if query.Q == "" {
+		dbQuery = `SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes
+			LIMIT ` + limit + ` OFFSET ` + offset
+	} else {
+		dbQuery = `SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes
+			WHERE title LIKE %` + query.Q + `%'` +
 
-	rows, err := db.Query(`SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes`)
-
+	}
+	rows, err := db.Query(dbQuery)
 	if err != nil {
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-		return nil, errMsg
+		return nil, 0, errMsg
 	}
 	for rows.Next() {
 		recipe := Recipe{}
 		if err := rows.Scan(&recipe.ID, &recipe.Name, &recipe.UserID,
 			&recipe.CategoryID, &recipe.Description, &recipe.Image, &recipe.CreatedAt, &recipe.UpdatedAt); err != nil {
 			errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
-			return nil, errMsg
+			return nil, 0, errMsg
 		}
 		recipes = append(recipes, recipe)
-		fmt.Println(recipe)
 	}
-	return recipes, nil
+	return recipes, 0, nil
 }
 
 // GetRecipe gets a single recipe
@@ -57,7 +66,6 @@ func GetRecipe(id int) (Recipe, error) {
 			&recipe.CategoryID, &recipe.Description, &recipe.Image, &recipe.CreatedAt, &recipe.UpdatedAt)
 	switch {
 	case err == sql.ErrNoRows:
-		fmt.Println("No rows with that id found", err.Error())
 		errMsg := fmt.Errorf("recipe with (id %d) does not exist", id)
 		return recipe, errMsg
 	case err != nil:
@@ -72,7 +80,6 @@ func GetRecipe(id int) (Recipe, error) {
 func CreateRecipe(recipe *Recipe) (*Recipe, error) {
 	db := DB()
 	defer db.Close()
-	fmt.Println(recipe)
 	sql := `INSERT INTO recipes (name, userID, categoryID, description, image_url) VALUES(?, ?, ?, ?, ?)`
 	_, err := db.Exec(sql, &recipe.Name, &recipe.UserID, &recipe.CategoryID, &recipe.Description, &recipe.Image)
 

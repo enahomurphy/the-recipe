@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"recipe/helpers"
 	"recipe/models"
@@ -15,8 +14,9 @@ import (
 
 // IngredientResponse is
 type IngredientResponse struct {
-	Status int                 `json:"status"`
-	Data   []models.Ingredient `json:"data"`
+	Status   int                 `json:"status"`
+	MetaData interface{}         `json:"meta_data,omitempty"`
+	Data     []models.Ingredient `json:"data"`
 }
 
 // CreateIngredient creates a new Ingredient
@@ -78,14 +78,22 @@ func GetIngredient(w http.ResponseWriter, r *http.Request) {
 // GetAllIngredient Gets all Ingredient and sends the data as response
 // to the requesting Ingredient
 func GetAllIngredient(w http.ResponseWriter, r *http.Request) {
-	Ingredient, err := models.GetAllIngredient()
+	query, err := helpers.GetQuery(r)
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
+	ingredient, count, err := models.GetAllIngredient(&query)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	metaData := helpers.MetaData(count, len(ingredient), &query)
+
 	response := IngredientResponse{
-		Status: http.StatusOK,
-		Data:   Ingredient,
+		Status:   http.StatusOK,
+		MetaData: metaData,
+		Data:     ingredient,
 	}
 	result, _ := json.Marshal(response)
 
@@ -109,8 +117,6 @@ func UpdateIngredient(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["id"])
-
-	fmt.Println(id)
 
 	_, err := models.UpdateIngredient(id, &Ingredient)
 	if err != nil {

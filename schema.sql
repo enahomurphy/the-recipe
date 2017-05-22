@@ -48,3 +48,7 @@ ALTER TABLE recipes
 ALTER TABLE recipes
 			ADD FOREIGN KEY (ingredientID) REFERENCES ingredients(id);
 
+limit := 10
+OFFSET := 0
+
+"SELECT * FROM Orders LIMIT 10 OFFSET 10 "

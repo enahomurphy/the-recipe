@@ -151,7 +151,7 @@ func Decode(jwt string, secret string) (interface{}, error) {
 
 	// verifies if the header and signature is exactly whats in
 	// the signature
-	if CompareHmac(signatureValue, token[2], "hello") == false {
+	if CompareHmac(signatureValue, token[2], secret) == false {
 		return nil, errors.New("Invalid token")
 	}
 
