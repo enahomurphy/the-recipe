@@ -33,8 +33,7 @@ func GetAllCategory(query helpers.Query) ([]Category, int, error) {
 			LIMIT ` + limit + ` OFFSET ` + offset
 	} else {
 		dbQuery = `SELECT id, title, description, created_at, updated_at FROM categories 
-			WHERE title ILIKE %` + query.Q + `% ` +
-			` LIMIT = ` + limit + ` OFFSET = ` + offset
+			WHERE title LIKE '%` + query.Q + `%'`
 	}
 	rows, err := db.Query(dbQuery)
 	if err != nil {

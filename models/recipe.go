@@ -35,8 +35,8 @@ func GetAllRecipe(query helpers.Query) ([]Recipe, int, error) {
 			LIMIT ` + limit + ` OFFSET ` + offset
 	} else {
 		dbQuery = `SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes
-			WHERE title ILIKE %` + query.Q + `% ` +
-			` LIMIT = ` + limit + ` OFFSET = ` + offset
+			WHERE title LIKE %` + query.Q + `%'` +
+
 	}
 	rows, err := db.Query(dbQuery)
 	if err != nil {
@@ -66,7 +66,7 @@ func GetRecipe(id int) (Recipe, error) {
 			&recipe.CategoryID, &recipe.Description, &recipe.Image, &recipe.CreatedAt, &recipe.UpdatedAt)
 	switch {
 	case err == sql.ErrNoRows:
-]		errMsg := fmt.Errorf("recipe with (id %d) does not exist", id)
+		errMsg := fmt.Errorf("recipe with (id %d) does not exist", id)
 		return recipe, errMsg
 	case err != nil:
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())

@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"recipe/helpers"
 	"recipe/models"
