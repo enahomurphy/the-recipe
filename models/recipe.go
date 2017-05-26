@@ -35,7 +35,7 @@ func GetAllRecipe(query helpers.Query) ([]Recipe, int, error) {
 			LIMIT ` + limit + ` OFFSET ` + offset
 	} else {
 		dbQuery = `SELECT id, name, userID, categoryID, description, image_url, created_at, updated_at FROM recipes
-			WHERE title LIKE %` + query.Q + `%'` +
+			WHERE title LIKE %` + query.Q + `%'`
 
 	}
 	rows, err := db.Query(dbQuery)
