@@ -59,6 +59,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		helpers.ResponseWriter(w, http.StatusBadRequest, string(response))
 		return
 	}
+	// hash user password and save
+	user.Password = helpers.HashPassword(user.Password)
 	_, dbErr := models.CreateUser(&user)
 
 	if dbErr != nil {

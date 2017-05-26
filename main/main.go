@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"recipe/authentication"
 	"recipe/controllers"
 	"recipe/models"
 
@@ -23,8 +24,9 @@ func init() {
 
 func routes() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc(baseURL+"/users", controllers.GetAllUsers).Methods("GET")
+	router.Handle(baseURL+"/users", authentication.AuthMiddleware(http.HandlerFunc(controllers.GetAllUsers))).Methods("GET")
 	router.HandleFunc(baseURL+"/users", controllers.CreateUser).Methods("POST")
+	router.HandleFunc(baseURL+"/users/login", authentication.Login).Methods("POST")
 	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.GetUser).Methods("GET")
 	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.UpdateUser).Methods("PUT")
 	router.HandleFunc(baseURL+"/users/{id:[0-9]+}", controllers.DeleteUser).Methods("DELETE")
@@ -46,6 +48,6 @@ func routes() *mux.Router {
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.GetIngredient).Methods("GET")
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.UpdateIngredient).Methods("PUT")
 	router.HandleFunc(baseURL+"/ingredients/{id:[0-9]+}", controllers.DeleteIngredient).Methods("DELETE")
-	
+
 	return router
 }

@@ -74,3 +74,11 @@ func StatusOkMessage(w http.ResponseWriter, message string) {
 func StatusCreated(w http.ResponseWriter, msg string) {
 	ResponseWriter(w, http.StatusCreated, msg)
 }
+
+// Unauthorized Sends a 401 request to the user
+// this is triggered when the user making the request
+// has not logged in
+func Unauthorized(w http.ResponseWriter, message string) {
+	msg := RespondMessages(message, http.StatusUnauthorized)
+	ResponseWriter(w, http.StatusUnauthorized, msg)
+}
