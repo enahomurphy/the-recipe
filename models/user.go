@@ -60,7 +60,7 @@ func GetAllUser(query helpers.Query) ([]User, int, error) {
 	return users, count, nil
 }
 
-// GetUser gets a single user
+// GetUser gets a single user by id
 func GetUser(id int) (User, error) {
 	db := DB()
 	user := User{}
@@ -71,6 +71,26 @@ func GetUser(id int) (User, error) {
 	switch {
 	case err == sql.ErrNoRows:
 		errMsg := fmt.Errorf("user with (id %d) does not exist", id)
+		return user, errMsg
+	case err != nil:
+		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
+		return user, errMsg
+	default:
+		return user, nil
+	}
+}
+
+// GetUserByUsername gets a single user by their username
+func GetUserByUsername(username string) (User, error) {
+	db := DB()
+	user := User{}
+	defer db.Close()
+	err := db.QueryRow("SELECT id, first_name, last_name, email, username, profile_pic FROM users where username = ? ", username).
+		Scan(&user.ID, &user.FirstName, &user.Email, &user.LastName, &user.UserName, &user.ProfilePic)
+
+	switch {
+	case err == sql.ErrNoRows:
+		errMsg := fmt.Errorf("user with (id %s) does not exist", username)
 		return user, errMsg
 	case err != nil:
 		errMsg := fmt.Errorf("an unknown error occurred %s", err.Error())
