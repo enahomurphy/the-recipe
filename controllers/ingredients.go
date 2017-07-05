@@ -3,12 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
 	"recipe/helpers"
 	"recipe/models"
+	"net/http"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 

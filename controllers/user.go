@@ -2,16 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"net/http"
+	"errors"
+	"recipe/helpers"
 	"recipe/models"
-
+	"net/http"
 	"strconv"
 
-	"recipe/helpers"
-
-	"errors"
-
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
