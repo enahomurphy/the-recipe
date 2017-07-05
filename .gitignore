@@ -3,4 +3,8 @@ bin
 pkg
 .DS_Store
 node_modules
-test
+main/main
+vendor
+pkg
+bin
+.env

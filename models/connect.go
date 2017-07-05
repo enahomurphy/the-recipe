@@ -8,7 +8,7 @@ import (
 )
 
 func DB() *sql.DB {
-	db, err := sql.Open("mysql", "root@/go_recipes")
+	db, err := sql.Open("mysql", "recipe:password@tcp(mysql)/recipe?tls=skip-verify&autocommit=true")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

@@ -1,0 +1,16 @@
+package: .
+homepage: https://the-recipe.herokuapp.com
+license: MIT
+owners:
+- name: Enaho murphy
+  email: enahomurphy@gmail.com
+excludeDirs:
+- node_modules
+import:
+- package: github.com/go-sql-driver/mysql
+  version: ^1.3.0
+- package: github.com/gorilla/mux
+  version: ^1.4.0
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt

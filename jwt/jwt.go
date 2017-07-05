@@ -48,7 +48,7 @@ func Base64Encode(src string) string {
 }
 
 // Base64Decode takes in an Encoded string and returns
-// the decoded value of that string if the is an error
+// the decoded value of that string if there is an error
 // decoding the string, an error is returned with an
 // empty string
 func Base64Decode(src string) (string, error) {
@@ -64,7 +64,7 @@ func Base64Decode(src string) (string, error) {
 // a specified secret
 // NB the hash is irreversible but the value passed in
 // can be evaluated by comoaring the message with the
-// hash returned
+// returned hash
 func Hmac256(src string, secret string) string {
 	key := []byte(secret)
 	h := hmac.New(sha256.New, key)
@@ -74,7 +74,7 @@ func Hmac256(src string, secret string) string {
 
 // CompareHmac compares a Hmac256 hash against a message
 // by hasing the message using the key and checking
-// is the hash of that message equals the hash passed
+// if the hash of that message equals the hash passed
 // in. the resulting value is a boolean true or false
 func CompareHmac(message string, messageHmac string, secret string) bool {
 	key := []byte(secret)
@@ -84,11 +84,9 @@ func CompareHmac(message string, messageHmac string, secret string) bool {
 	return expectedMac == messageHmac
 }
 
-// getHeader this creates the jwt header for ensures
-// by default it uses the HMAC@%^ algorithms to which
-// the jwt signature should be hashed with
-// NB JWT token can use both HS256 and RS256, but this
-// only accpets the HS256
+// getHeader this creates the jwt header.
+// Alg: algorithm used
+// Typ: of token
 func getHeader() string {
 	type Header struct {
 		Alg string `json:"alg"`
@@ -102,10 +100,10 @@ func getHeader() string {
 	return Base64Encode(string(str))
 }
 
-// Encode creates a jwt token by hashing the an encode header
+// Encode creates a jwt token by hashing the encoded header
 // containing the hasing algorithms and the encoded payload
 // of the user using the HS256 algorithm. this method returns
-// a token concatenated with the base64 encoded
+// a token concatenated with the base64 encoded payload and header
 // {header}.{payload}.{signature}
 func Encode(payload Payload, secret string) string {
 	header := getHeader()
@@ -114,12 +112,12 @@ func Encode(payload Payload, secret string) string {
 	return signatureValue + "." + Hmac256(signatureValue, secret)
 }
 
-// Decode alidates a converts a jwt token by doing the following
-// sliting the token in three parts and decoding the payload
+// Decode validates and decodes user payload doing the following
+// sliting the token into three parts and decoding the payload
 // the resulting value is converted to struct
 // the EXP on the decoded value is verified by checking if the
-// current time is exceeds it this shows the token has expired
-// if that checks out the signature is tested with the secret
+// current time exceeds whats in the token. This shows the token has expired
+// if that checks out, the signature is tested with the secret -
 // key to validate the token if that passes the payload is returned
 func Decode(jwt string, secret string) (interface{}, error) {
 	token := strings.Split(jwt, ".")
