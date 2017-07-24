@@ -1,0 +1,10 @@
+.vscode
+bin
+pkg
+.DS_Store
+node_modules
+main/main
+vendor
+pkg
+bin
+.env

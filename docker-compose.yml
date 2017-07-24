@@ -1,0 +1,57 @@
+# Version specifies the docker file version to use, will be using version 2 for thsi project
+# Sevices specifies the docker container/service we want ot run. This contains configuaration fo each service
+# Build contains configuration options ar build time
+# container_name used for the container name instead of docker default
+# depends_on specifies the services a service depends on
+# networks specifiy the network a service can connect to; this bassicaly adds a service to s specific network
+# OTHERS
+# - expose: eposes ports to a linked service in the same network
+# - env_file loads a exter envfile
+# - environments : specifies environment variables in dockefile
+# - extends: extends other docker.yml file and overites it configuration
+# - external_links: links to container started outside a dockerfile
+
+version: '2'
+
+services:
+  go:
+    container_name: recipe
+    image: golang:1.80
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "8080:8085"
+    depends_on: 
+      - mysql
+    volumes:
+      - .:/go/src/recipe
+    networks:
+      - recipe_network
+  
+
+  mysql:
+    container_name: mysql
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=recipe
+      - MYSQL_USER=recipe
+      - MYSQL_PASSWORD=password
+    networks:
+      - recipe_network
+  
+  adminer:
+    image: adminer
+    ports:
+      - 8081:8080
+    networks:
+      - recipe_network
+      
+networks:
+  recipe_network:
+    driver: bridge

@@ -1,0 +1,74 @@
+#%RAML 1.0
+baseUri: api/v1
+title:
+description: This s a simple recipe api that allows users to create, update and delete recipes
+
+types:
+  User:
+    properties:
+      id: integer
+      first_name: string
+      last_name: string
+      username: string
+      email: string
+      profile_pic: string
+      password: string
+      createdAt: string
+      updatedAt: string
+    example:
+      id: 2
+      first_name: "John"
+      last_name: "Doe"
+      username: "johndoe"
+      email: "johndoe@john.com"
+      profile_pic: "https://john.com/profile/john.jpg"
+      password: "test1234"
+      createdAt: "12-04-1995"
+      updatedAt: "12-04-1995"
+
+  Users:
+    type: User []
+
+
+resourceTypes:
+  Collection:
+    get:
+      queryParameters:
+
+      responses:
+        200:
+          body:
+            application/json:
+              type: <<item>>
+    post:
+      responses:
+        201:
+          body:
+            application/json:
+              type: <<item>>
+
+/users:
+  get:
+    description: "get single movie"
+    type: { Collection: { item: Users } }
+  post:
+  type: { Collection: { item: Users } }
+
+  /{id}:
+    get:
+      description: "get single users"
+      type: { Collection: { item: User } }
+    put:
+    delete:
+
+
+/categories:
+  /:
+    description:
+    type:
+  /{id}:
+    description
+
+/recipes:
+
+/ingredients:
