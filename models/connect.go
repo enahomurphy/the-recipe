@@ -7,8 +7,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//DB connection instance to mysql
 func DB() *sql.DB {
-	db, err := sql.Open("mysql", "recipe:password@tcp(mysql)/recipe?tls=skip-verify&autocommit=true")
+	db, err := sql.Open("mysql", "recipe:password@tcp(mysql:3306)/recipe")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
